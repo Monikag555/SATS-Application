@@ -1,0 +1,157 @@
+/* Style the carousel container */
+.carousel {
+    position: relative;
+    width: 100%;
+    margin: 20px 0;
+}
+
+.background{
+    /* background: linear-gradient(#c9d0e3, #3755ad); */
+    background: linear-gradient(#c9d0e3, #7794ce);
+    /* background-color: #7794ce; */
+}
+
+/* Style the title */
+.elementTitle {
+    font-size: 30px;
+    font-weight: bold;
+    margin-bottom: 10px;
+    text-align: center;
+}
+
+.elementTitleMargin {
+    margin: 0 15px;
+}
+
+/* Style the carousel inner container */
+.carousel-inner {
+    display: flex;
+    overflow: hidden;
+}
+
+/* Style the carousel items */
+.carousel-item {
+    display: none;
+    transition: transform 0.5s ease;
+}
+
+.carousel-item.active {
+    display: block;
+}
+
+/* Ensure the row is properly aligned */
+.row {
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+}
+
+/* Style the card containers */
+.card {
+    /* width: 100%; */
+    height: 420px;
+    width: 370px;
+    /* margin: 20px; */
+    border: 3px solid black;
+    border-radius: 7px;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+/* Style the card images */
+.card-img-top {
+    /* width: 100%; */
+
+    /* height: auto; */
+    height: 300px;
+    width: 450px;
+    object-fit: cover;
+}
+
+/* Style the card body */
+.card-body {
+    padding: 15px;
+}
+
+/* Style the card text */
+.card-text {
+    font-size: 18px;
+    text-align: center;
+    color: #333;
+    font-weight: bold;
+}
+
+.card-sub-text{
+    font-size: 14px;
+    text-align: justify;
+    color: black;
+}
+
+.col-md-3{
+    padding-left: 220px;
+    /* padding-right: -250px; */
+}
+/* Style the carousel controls */
+.carousel-control-prev,
+.carousel-control-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    transition: background 0.3s;
+}
+
+.carousel-control-prev:hover,
+.carousel-control-next:hover {
+    background: rgba(0, 0, 0, 0.7);
+}
+
+.carousel-control-prev {
+    left: 10px;
+}
+
+.carousel-control-next {
+    right: 10px;
+}
+
+/* Style the control icons */
+.carousel-control-prev-icon,
+.carousel-control-next-icon {
+    width: 20px;
+    height: 20px;
+    background: white;
+}
+
+/* Style the screen reader text */
+.sr-only {
+    display: none;
+}
+
+/* Responsive styling */
+@media (max-width: 768px) {
+    .col-md-3 {
+        flex: 0 0 50%;
+        max-width: 50%;
+    }
+}
+
+@media (max-width: 576px) {
+    .col-md-3 {
+        flex: 0 0 100%;
+        max-width: 100%;
+    }
+}

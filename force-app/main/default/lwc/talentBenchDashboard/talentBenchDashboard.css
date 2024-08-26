@@ -1,0 +1,80 @@
+.slds-button:focus, .slds-button:active {
+    outline: none;
+    box-shadow: none;
+    text-decoration: none;
+}
+.expanded-modal-content {
+    width: 950px; 
+    max-height: 1000px;
+    overflow: auto;
+}
+
+.expanded-datatable {
+    width:950px;
+    max-height: 1000px;
+    margin-right:500px;
+}
+.slds-modal__header{
+    width:950px;
+}
+.slds-modal__footer{
+    width:950px;
+}
+
+.table{
+    border: 2px solid #143c64;
+
+}
+.custom_table{
+    border: 1px solid #143c64;
+    overflow-y: auto;
+}
+
+/* .box1{
+    width: 290px;
+}
+
+.box2{
+    width: 330px;
+    padding-left: 30px;
+}
+
+.box3{
+    width: 300px;
+}
+
+.box4{
+    width: 635px;
+    padding-left: 330px;
+} */
+
+.slds-modal__container {
+    width: 90%;
+    max-width: 1000px;
+    max-height: 1000px;
+    overflow: auto;
+}
+
+/* .Maximize{
+    padding-left: 700px;
+} */
+
+.slds-card__header {
+    position: relative;
+}
+
+.slds-button_icon.slds-float_right {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+}
+
+/* .innertable{
+    height: 800px;
+} */
+
+.max{
+    margin-top: -35px;
+    margin-right: 20px;
+}

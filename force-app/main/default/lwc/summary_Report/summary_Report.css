@@ -1,0 +1,193 @@
+.circle {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: red; /* Default color */
+    transition: background-color 0.5s ease-in-out;
+    animation: none; /* Default state with no animation */
+}
+
+.circle.flow_color {
+    background-color: red; /* Ensure the color is red when animating */
+    animation: pulseRed 1s infinite; /* Add pulsing animation for red */
+}
+
+.circle.color {
+    background-color: green;
+    transition: background-color 0.5s ease-in-out; /* Smooth color transition */
+    /* animation: pulseGreenToStable 5s forwards; */
+    /* Pulsing to stable animation for green */
+    animation: pulseRed 4s forwards;
+
+}
+
+.circle.re_color {
+    background-color: orange;
+    transition: background-color 0.5s ease-in-out; /* Smooth color transition */
+    animation: pulseGreenToStable 1s infinite; /* Pulsing to stable animation for green */
+}
+
+.vertical-line {
+    width: 2px;
+    height: 50px;
+    background-color: red; /* Default color */
+    transition: background-color 0.5s ease-in-out;
+    animation: none; /* Default state with no animation */
+}
+
+.vertical-line.flow_color {
+    background-color: red; /* Ensure the color is red when animating */
+    animation: pulseRed 1s infinite; /* Add pulsing animation for red */
+}
+
+.vertical-line.color {
+    background-color: green;
+    transition: background-color 0.5s ease-in-out; /* Smooth color transition */
+    animation: pulseGreenToStable 3s forwards; /* Pulsing to stable animation for green */
+}
+
+@keyframes pulseRed {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes pulseGreenToStable {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.2);
+        opacity: 0.5;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+        /* Optional: Use the background color to be stable */
+    }
+}
+
+.slds-button:focus, .slds-button:active {
+    outline: none;
+    box-shadow: none;
+    text-decoration: none;
+}
+
+.expanded-modal-content {
+    width: 950px; 
+    max-height: 1000px;
+    overflow: auto;
+}
+
+.expanded-datatable {
+    width:950px;
+    max-height: 1000px;
+}
+
+.slds-modal__header {
+    width:950px;
+}
+
+.slds-modal__footer {
+    width:950px;
+}
+
+.table {
+    border: 2px solid #143c64;
+}
+
+.custom_table {
+    border: 1px solid #143c64;
+    overflow-y: auto;
+}
+
+.slds-modal__content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.lightning-progress-indicator {
+    width: 100%;
+}
+
+.slds-modal__body.slds-p-around_medium {
+    background-color: white;
+    width: 950px;
+}
+
+.slds-align_absolute-center {
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    align-items: center;
+    margin: 0%;
+}
+
+.flow-chart-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.flow-chart-stage {
+    display: flex;
+    align-items: flex-start;
+    position: relative;
+}
+
+.circle-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-right: 10px;
+}
+
+.stage-wrapper {
+    flex: 1;
+}
+
+.stage-text {
+    margin: 0;
+}
+
+.slds-modal__container {
+    width: 90%;
+    max-width: 1000px;
+    max-height: 1000px;
+    overflow: auto;
+}
+
+/* .Maximize{
+    padding-left: 700px;
+} */
+
+.slds-card__header {
+    position: relative;
+}
+
+.slds-button_icon.slds-float_right {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+}
+
+/* .innertable{
+    height: 800px;
+} */
+
+.max{
+    margin-top: -35px;
+    margin-right: 20px;
+}

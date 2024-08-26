@@ -1,0 +1,39 @@
+.datatable{
+    border: 1px solid black;
+    overflow-y: auto;
+}
+
+.table{
+    border: 2px solid #143c64;
+}
+
+.slds-modal__container {
+    width: 90%;
+    max-width: 1000px;
+    max-height: 1000px;
+    overflow: auto;
+}
+
+/* .Maximize{
+    padding-left: 700px;
+} */
+
+.slds-card__header {
+    position: relative;
+}
+
+.slds-button_icon.slds-float_right {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+}
+
+/* .innertable{
+    height: 800px;
+} */
+
+.max{
+    margin-top: -35px;
+    margin-right: 20px;
+}

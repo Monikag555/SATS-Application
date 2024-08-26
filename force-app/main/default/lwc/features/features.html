@@ -1,0 +1,32 @@
+<!-- <template>
+    <div class="image-container">
+        <img class="image" src={imageUrl}>
+        <img class="image1" src={imageUrl2}>
+    </div>
+</template> -->
+
+
+
+
+<template><br><br>
+    <div class="heading">
+        <p class="elementTitle elementTitleMargin">What We Offer You</p>
+    </div>
+    <div class="container">
+        <!-- Constant Image Section -->
+        <div class="constant-image">
+            <img src={OfferUrl} alt="Constant Image" />
+        </div>
+
+        <!-- Carousel Section -->
+        <div class="carousel-container">
+            <div class="carousel">
+                <template for:each={slides} for:item="slide">
+                    <div key={slide.id} class="carousel-slide">
+                        <img src={slide.src} alt="Slide {slide.id}" />
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+</template>

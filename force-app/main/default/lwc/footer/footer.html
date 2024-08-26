@@ -1,0 +1,66 @@
+<template>
+    <div class="bg">
+    <footer class="slds-p-around_medium">
+        <div class="footer-container">
+            <div class="footer-image">
+                <!-- <img src="https://sprintparksolutionspvtltd-dev-ed.develop.file.force.com/sfc/servlet.shepherd/version/renditionDownload?rendition=ORIGINAL_Png&versionId=068dM000002H7QX&operationContext=CHATTER&contentId=05TdM000002Qm9V
+" width="200px" height="200px" alt="Footer Image"/> -->
+                <img src={footerImageUrl} alt="Footer Image" width="200px" height="200px"/>
+            </div>
+            <div class="footer-content">
+                <div class="footer-subscribe">
+                    <div class="emailbox"><lightning-input name="Email" placeholder="Your Email" type="email"></lightning-input></div>
+                    <button class="subscribe-button" onclick={handleSubscribe}>
+                        Feedback
+                    </button>
+                </div>
+                <div class="footer-links">
+                    <div>
+                        <h3>Partnership</h3>
+                        <a href="https://sprintpark.net/partners">Partners</a>
+                        <a href="https://sprintpark.net/services">Sevices</a>
+                    </div>
+                    <div class="about">
+                        <h3>About</h3>
+                        <a href="https://sprintpark.net/">Our Page</a>
+                        <a href="https://sprintpark.net/about-us">About Us</a>
+                    </div>
+                    <div class="social_media">
+                        <h3>Social Media</h3>
+                        <a href="https://www.facebook.com/SPRINTPARKLLC">Facebook</a>
+                        <a href="https://www.linkedin.com/company/sprintparkusa">LinkedIn</a>
+                    </div>
+                    <div class="support">
+                        <h3>Support</h3>
+                        <a href="https://sprintpark.net/contact-us">Contact</a>
+                    </div>
+                </div>
+                <br><br>
+                <div class="line">
+                    <hr>
+                </div>
+                <br>
+                <div class="footer-bottom">
+                    <p>© Copyright 2024 SprintPark ATS. All rights reserved.</p>
+                    <div class="footer-social-links">
+                        <!-- <lightning-button-icon icon-name="utility:world" alternative-text="Website"></lightning-button-icon> -->
+                        <!-- <a href="https://sprintpark.net/" target="_blank" aria-label="Website">
+                            <img src="https://sprintparksolutionspvtltd-dev-ed.develop.file.force.com/sfc/servlet.shepherd/version/renditionDownload?rendition=ORIGINAL_Png&versionId=068dM000002QZiX&operationContext=CHATTER&contentId=05TdM000002bCMv" width="30px" height="20px" alt="Website">
+                        </a> -->
+
+
+                        <!-- Social Media Icon(45-46Lines) -->
+                        <!-- <a href="https://sprintpark.net/" class="website"><img src="https://sprintparksolutionspvtltd-dev-ed.develop.file.force.com/sfc/servlet.shepherd/version/renditionDownload?rendition=ORIGINAL_Png&versionId=068dM000002QZiX&operationContext=CHATTER&contentId=05TdM000002bCMv" width="25px" height="15px"></a>
+                        <a href="https://www.linkedin.com/company/sprintparkusa" class="LinkedIn"><img src="https://sprintparksolutionspvtltd-dev-ed.develop.file.force.com/sfc/servlet.shepherd/version/renditionDownload?rendition=ORIGINAL_Png&versionId=068dM000002Qc25&operationContext=CHATTER&contentId=05TdM000002bFzp" width="25px" height="15px"></a> -->
+                        <!-- <lightning-button-icon icon-name="utility:twitter" alternative-text="Twitter"></lightning-button-icon>
+                        <lightning-button-icon icon-name="utility:facebook" alternative-text="Facebook"></lightning-button-icon>
+                        <lightning-button-icon icon-name="utility:linkedin" alternative-text="LinkedIn"></lightning-button-icon>
+                        <lightning-button-icon icon-name="utility:youtube" alternative-text="YouTube"></lightning-button-icon> -->
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+</template>

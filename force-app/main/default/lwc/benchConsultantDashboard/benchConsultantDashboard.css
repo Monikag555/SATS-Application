@@ -1,0 +1,59 @@
+.table {
+    max-width: 1800px;
+    border: 2px solid #143c64;
+}
+
+.full-width-combobox {
+    width: 100%;
+}
+
+.custom_table {
+    max-height: 100%;
+}
+
+.chart-container {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    margin-top: 1rem;
+}
+
+.lightning-card {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.datatable{
+    border: 1px solid black;
+    overflow-y: auto;
+}
+
+.slds-modal__container {
+    width: 90%;
+    max-width: 1000px;
+    max-height: 1000px;
+    overflow: auto;
+}
+
+/* .Maximize{
+    padding-left: 700px;
+} */
+
+.slds-card__header {
+    position: relative;
+}
+
+.slds-button_icon.slds-float_right {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    transform: translateY(-50%);
+}
+
+/* .innertable{
+    height: 800px;
+} */
+
+.max{
+    margin-top: -20px;
+    margin-right: 20px;
+}

@@ -1,0 +1,112 @@
+.footer-container {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.bg{
+    background: linear-gradient(#5de0e6, #004aad);
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    flex-grow: 1;
+}
+
+.footer-subscribe {
+    display: flex;
+    align-items: center;
+}
+.subscribe-button {
+    margin-left: 10px;
+    /* border: 2px solid#143c64; */
+    margin-top: 70px;
+    color: #143c64;
+    height: 35px;
+    width: 150px;
+}
+
+.subscribe-button:hover {
+    background: linear-gradient(#5de0e6, #004aad);
+    color: #ffff;
+    border: none;
+}
+
+.footer-links {
+    display: flex;
+    /* justify-content: space-between; */
+    margin-top: 20px;
+    color: #143c64;
+    font-size: 20px;
+}
+
+.footer-links div {
+    display: flex;
+    flex-direction: column;
+}
+
+.footer-links a {
+    margin: 5px 0;
+    color: #ffff;
+    font-size: 18px;
+}
+
+.footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 20px;
+    color: #143c64;
+    font-size: 18px;
+}
+
+.footer-social-links {
+    display: flex;
+    align-items: center;
+}
+
+.footer-social-links lightning-button-icon {
+    margin: 0 5px;
+}
+
+.website{
+    margin: 0 5px;
+    color:#ffff;
+    border: 2px solid #ffff;
+    background-color: #ffff;
+    
+    margin-left: -600px;
+}
+
+.LinkedIn{
+    margin: 0 5px;
+    color:#ffff;
+    border: 2px solid #ffff;
+    background-color: #ffff;
+    
+    
+}
+
+.emailbox{
+    margin-top: 50px;
+}
+
+.about{
+    margin-left: 150px;
+}
+
+.support{
+    margin-left: 150px;
+}
+
+.social_media{
+    margin-left: 150px;
+}
+
+.line{
+    width: 450px;
+    height: 10px;
+}
