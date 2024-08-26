@@ -1,0 +1,35 @@
+name: SFDX Code Scan
+ 
+on:
+  push:
+    branches:
+      - main
+      - '**'  # This will trigger on any branch push
+ 
+jobs:
+  run-scanner:
+    runs-on: ubuntu-latest
+ 
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+ 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '20'
+ 
+      - name: Install Salesforce CLI
+        run: |
+          npm install --global sfdx-cli
+      - name: Install SFDX Scanner Plugin
+        run: |
+          sfdx plugins:install @salesforce/sfdx-scanner
+      - name: Run SFDX Scanner
+        run: |
+          sfdx scanner:run --target "force-app/main/default/classes" --format "csv" --outfile "scanner-report.csv"
+      - name: Upload Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: sfdx-scan-report
+          path: scanner-report.csv
