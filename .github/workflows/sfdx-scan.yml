@@ -39,7 +39,7 @@ jobs:
       - name: Upload CSV Report to Salesforce
         run: |
           # First, create a ContentDocument
-          contentDocumentResponse=$(curl -X POST https://your-instance.salesforce.com/services/data/v53.0/sobjects/ContentVersion/ \
+          contentDocumentResponse=$(curl -X POST https://IND136.salesforce.com/services/data/v53.0/sobjects/ContentVersion/ \
             -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d '{
