@@ -1,0 +1,15 @@
+<template>
+    <lightning-card title="CSV Data">
+        <template if:true={data}>
+            <lightning-datatable
+                key-field="id"
+                data={data}
+                columns={columns}
+                hide-checkbox-column="true">
+            </lightning-datatable>
+        </template>
+        <template if:true={error}>
+            <p>{error}</p>
+        </template>
+    </lightning-card>
+</template>
