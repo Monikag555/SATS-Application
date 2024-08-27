@@ -4,7 +4,7 @@ public with sharing class File {
         // Query the latest ContentVersion based on CreatedDate
         ContentVersion latestContentVersion = [SELECT ContentDocumentId 
                                               FROM ContentVersion 
-                                              WHERE Title = 'Scanner Report' 
+                                              WHERE Title = 'scanner-report' 
                                               ORDER BY CreatedDate DESC 
                                               LIMIT 1];
         return latestContentVersion.ContentDocumentId;
