@@ -23,7 +23,8 @@ jobs:
 
       - name: Authenticate to Salesforce
         run: |
-          echo ${{ secrets.SFDX_AUTH_URL }} | sfdx auth:sfdxurl:store --setdefaultusername --json
+          echo ${{ secrets.SFDX_AUTH_URL }} > sfdx-auth-url.txt
+          sfdx auth:sfdxurl:store --sfdx-url-file sfdx-auth-url.txt --setdefaultusername --json
 
       - name: Install SFDX Scanner Plugin
         run: |
