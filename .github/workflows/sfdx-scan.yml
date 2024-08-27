@@ -39,31 +39,25 @@ jobs:
         run: |
           sfdx scanner:run --target "force-app/main/default" --format "csv" --outfile "scanner-report.csv"
 
-      - name: Encode CSV file to Base64
-        id: encode_file
-        run: |
-          base64 scanner-report.csv | tr -d '\n' > encoded_report.txt
-
       - name: Install jq
         run: sudo apt-get install -y jq
 
       - name: Upload CSV Report to Salesforce
         run: |
-          # Create a ContentDocument
-          contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
+          # Use Salesforce REST API to create a ContentVersion
+          # Using multipart/form-data to handle large file uploads
+          response=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
             -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "Title": "Scanner Report",
-              "PathOnClient": "scanner-report.csv",
-              "VersionData": "'"$(cat encoded_report.txt)"'"
-            }')
+            -F "Title=Scanner Report" \
+            -F "PathOnClient=scanner-report.csv" \
+            -F "VersionData=@scanner-report.csv" \
+            -F "Content-Type=application/json")
 
           # Check for errors in the response
-          echo "Response: $contentDocumentResponse"
+          echo "Response: $response"
           
           # Extract ContentVersionId and ContentDocumentId from the response
-          contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
+          contentVersionId=$(echo $response | jq -r '.id // empty')
 
           if [ -z "$contentVersionId" ]; then
             echo "Error: Failed to upload file. No ContentVersionId found."
