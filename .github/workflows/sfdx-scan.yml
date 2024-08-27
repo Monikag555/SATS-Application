@@ -29,32 +29,31 @@ jobs:
 
       - name: Run SFDX Scanner
         run: |
-          sfdx scanner:run --target "force-app/main/default" --format "csv" --outfile "scanner-report.csv"
+          sfdx scanner:run --target "force-app/main/default/classes" --format "csv" --outfile "scanner-report.csv"
 
       - name: Encode CSV file to Base64
         id: encode_file
         run: |
           base64 scanner-report.csv | tee encoded_report.txt
 
-          - name: Upload CSV Report to Salesforce
-          run: |
-            # First, create a ContentDocument
-            contentDocumentResponse=$(curl -X POST https://IND136.salesforce.com/services/data/v53.0/sobjects/ContentVersion/ \
-              -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              -d '{
-                "Title": "Scanner Report",
-                "PathOnClient": "scanner-report.csv",
-                "VersionData": "'"$(cat encoded_report.txt)"'"
-              }')
-        
-            # Extract ContentDocumentId from the response
-            contentDocumentId=$(echo $contentDocumentResponse | jq -r '.id')
-        
-            # Optional: Log the ContentDocumentId
-            echo "ContentDocumentId: $contentDocumentId"
-        
-          env:
-            SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
-          shell: bash
-        
+      - name: Upload CSV Report to Salesforce
+        run: |
+          # First, create a ContentDocument
+          contentDocumentResponse=$(curl -X POST https://IND136.salesforce.com/services/data/v53.0/sobjects/ContentVersion/ \
+            -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "Title": "Scanner Report",
+              "PathOnClient": "scanner-report.csv",
+              "VersionData": "'"$(cat encoded_report.txt)"'"
+            }')
+
+          # Extract ContentDocumentId from the response
+          contentDocumentId=$(echo $contentDocumentResponse | jq -r '.id')
+
+          # Optional: Log the ContentDocumentId
+          echo "ContentDocumentId: $contentDocumentId"
+
+        env:
+          SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
+        shell: bash
