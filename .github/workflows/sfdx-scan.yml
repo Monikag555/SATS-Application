@@ -27,6 +27,14 @@ jobs:
         run: |
           sfdx plugins:install @salesforce/sfdx-scanner
 
+      - name: Verify SFDX CLI Installation
+        run: |
+          sfdx --version
+
+      - name: Verify SFDX Scanner Plugin Installation
+        run: |
+          sfdx plugins --core
+
       - name: Run SFDX Scanner
         run: |
           sfdx scanner:run --target "force-app/main/default/classes" --format "csv" --outfile "scanner-report.csv"
@@ -36,24 +44,29 @@ jobs:
         run: |
           base64 scanner-report.csv | tee encoded_report.txt
 
-          - name: Upload CSV Report to Salesforce
-          run: |
-            # First, create a ContentDocument
-            contentDocumentResponse=$(curl -X POST https://https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
-              -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              -d '{
-                "Title": "Scanner Report",
-                "PathOnClient": "scanner-report.csv",
-                "VersionData": "'"$(cat encoded_report.txt)"'"
-              }')
-        
-            # Extract ContentDocumentId from the response
-            contentDocumentId=$(echo $contentDocumentResponse | jq -r '.id')
-        
-            # Optional: Log the ContentDocumentId
-            echo "ContentDocumentId: $contentDocumentId"
-          env:
-            SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
-          shell: bash
-        
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Upload CSV Report to Salesforce
+        run: |
+          # Create a ContentDocument
+          contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
+            -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "Title": "Scanner Report",
+              "PathOnClient": "scanner-report.csv",
+              "VersionData": "'"$(cat encoded_report.txt)"'"
+            }')
+    
+          # Check for errors in the response
+          echo "Response: $contentDocumentResponse"
+          
+          # Extract ContentDocumentId from the response
+          contentDocumentId=$(echo $contentDocumentResponse | jq -r '.id')
+    
+          # Optional: Log the ContentDocumentId
+          echo "ContentDocumentId: $contentDocumentId"
+        env:
+          SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
+        shell: bash
