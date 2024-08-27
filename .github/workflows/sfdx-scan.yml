@@ -38,18 +38,11 @@ jobs:
       - name: Run SFDX Scanner
         run: |
           sfdx scanner:run --target "force-app/main/default/classes" --format "csv" --outfile "scanner-report.csv"
-        continue-on-error: true
-
-      - name: Check CSV File Size
-        run: |
-          ls -l scanner-report.csv
-          cat scanner-report.csv
 
       - name: Encode CSV file to Base64
         id: encode_file
         run: |
           base64 scanner-report.csv | tr -d '\n' > encoded_report.txt
-          cat encoded_report.txt
 
       - name: Install jq
         run: sudo apt-get install -y jq
@@ -69,7 +62,7 @@ jobs:
           # Check for errors in the response
           echo "Response: $contentDocumentResponse"
           
-          # Extract ContentVersionId from the response
+          # Extract ContentVersionId and ContentDocumentId from the response
           contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
 
           if [ -z "$contentVersionId" ]; then
