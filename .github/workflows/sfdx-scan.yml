@@ -22,22 +22,28 @@ jobs:
       - name: Install Salesforce CLI
         run: |
           npm install --global sfdx-cli
+
       - name: Install SFDX Scanner Plugin
         run: |
           sfdx plugins:install @salesforce/sfdx-scanner
+
       - name: Verify SFDX CLI Installation
         run: |
           sfdx --version
+
       - name: Verify SFDX Scanner Plugin Installation
         run: |
           sfdx plugins --core
+
       - name: Run SFDX Scanner
         run: |
           sfdx scanner:run --target "force-app/main/default/classes" --format "csv" --outfile "scanner-report.csv"
+
       - name: Encode CSV file to Base64
         id: encode_file
         run: |
           base64 scanner-report.csv | tr -d '\n' > encoded_report.txt
+
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -52,27 +58,34 @@ jobs:
               "PathOnClient": "scanner-report.csv",
               "VersionData": "'"$(cat encoded_report.txt)"'"
             }')
+
           # Check for errors in the response
           echo "Response: $contentDocumentResponse"
           
           # Extract ContentVersionId and ContentDocumentId from the response
           contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
+
           if [ -z "$contentVersionId" ]; then
             echo "Error: Failed to upload file. No ContentVersionId found."
             exit 1
           fi
+
           echo "ContentVersionId: $contentVersionId"
+
           # Query ContentDocument using ContentVersionId
           contentDocumentResponse=$(curl -X GET https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/$contentVersionId \
             -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}")
+
           echo "ContentDocument Response: $contentDocumentResponse"
           
           # Extract ContentDocumentId
           contentDocumentId=$(echo $contentDocumentResponse | jq -r '.ContentDocumentId // empty')
+
           if [ -z "$contentDocumentId" ]; then
             echo "Error: Failed to retrieve ContentDocumentId. No ContentDocumentId found."
             exit 1
           fi
+
           echo "ContentDocumentId: $contentDocumentId"
         env:
           SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
