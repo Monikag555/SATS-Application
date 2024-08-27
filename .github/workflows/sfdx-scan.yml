@@ -2,7 +2,7 @@ on:
   push:
     branches:
       - main
-      - '**'  # This will trigger on any branch push
+      - '**'
 
 jobs:
   run-scanner:
@@ -15,24 +15,24 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: '18'
 
       - name: Install Salesforce CLI
         run: |
-          npm install --global sfdx-cli
+          npm install --global sfdx-cli@latest
+
+      - name: Install SFDX Scanner Plugin
+        run: |
+          sfdx plugins:install @salesforce/sfdx-scanner@latest
 
       - name: Authenticate to Salesforce
         run: |
           echo ${{ secrets.SFDX_AUTH_URL }} > sfdx-auth-url.txt
           sfdx auth:sfdxurl:store --sfdx-url-file sfdx-auth-url.txt --setdefaultusername --json
 
-      - name: Install SFDX Scanner Plugin
-        run: |
-          sfdx plugins:install @salesforce/sfdx-scanner
-
       - name: Run SFDX Scanner
         run: |
-          sfdx scanner:run --target "force-app/main/default/classes" --format "csv" --outfile "scanner-report.csv"
+          sfdx scanner:run --target "force-app/main/default" --format "csv" --outfile "scanner-report.csv" --debug
 
       - name: Upload CSV to Salesforce Files
         run: |
