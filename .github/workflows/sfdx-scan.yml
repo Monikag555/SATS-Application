@@ -1,3 +1,5 @@
+name: SFDX Code Scan
+
 on:
   push:
     branches:
@@ -19,21 +21,39 @@ jobs:
 
       - name: Install Salesforce CLI
         run: |
-          npm install --global sfdx-cli@latest
+          npm install --global sfdx-cli
 
       - name: Install SFDX Scanner Plugin
         run: |
-          sfdx plugins:install @salesforce/sfdx-scanner@latest
-
-      - name: Authenticate to Salesforce
-        run: |
-          echo ${{ secrets.SFDX_AUTH_URL }} > sfdx-auth-url.txt
-          sfdx auth:sfdxurl:store --sfdx-url-file sfdx-auth-url.txt --set-default --json
+          sfdx plugins:install @salesforce/sfdx-scanner
 
       - name: Run SFDX Scanner
         run: |
-          sfdx scanner:run --target "force-app/main/default" --format "csv" --outfile "scanner-report.csv" --debug
+          sfdx scanner:run --target "force-app/main/default/classes" --format "csv" --outfile "scanner-report.csv"
 
-      - name: Upload CSV to Salesforce Files
+      - name: Encode CSV file to Base64
+        id: encode_file
         run: |
-          sfdx force:data:record:create -s ContentVersion -v "Title='scanner-report' PathOnClient='scanner-report.csv' VersionData=$(base64 -w 0 scanner-report.csv)" --json
+          base64 scanner-report.csv | tee encoded_report.txt
+
+      - name: Upload CSV Report to Salesforce
+        run: |
+          # First, create a ContentDocument
+          contentDocumentResponse=$(curl -X POST https://your-instance.salesforce.com/services/data/v53.0/sobjects/ContentVersion/ \
+            -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "Title": "Scanner Report",
+              "PathOnClient": "scanner-report.csv",
+              "VersionData": "'"$(cat encoded_report.txt)"'"
+            }')
+
+          # Extract ContentDocumentId from the response
+          contentDocumentId=$(echo $contentDocumentResponse | jq -r '.id')
+
+          # Optional: Log the ContentDocumentId
+          echo "ContentDocumentId: $contentDocumentId"
+
+        env:
+          SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
+        shell: bash
