@@ -42,7 +42,7 @@ jobs:
       - name: Encode CSV file to Base64
         id: encode_file
         run: |
-          base64 scanner-report.csv | tee encoded_report.txt
+          base64 scanner-report.csv > encoded_report.txt
 
       - name: Install jq
         run: sudo apt-get install -y jq
@@ -58,13 +58,13 @@ jobs:
               "PathOnClient": "scanner-report.csv",
               "VersionData": "'"$(cat encoded_report.txt)"'"
             }')
-    
+
           # Check for errors in the response
           echo "Response: $contentDocumentResponse"
           
-          # Extract ContentDocumentId from the response
-          contentDocumentId=$(echo $contentDocumentResponse | jq -r '.id')
-    
+          # Extract ContentDocumentId from the response, handling potential array response
+          contentDocumentId=$(echo $contentDocumentResponse | jq -r '.[0].id // empty')
+
           # Optional: Log the ContentDocumentId
           echo "ContentDocumentId: $contentDocumentId"
         env:
