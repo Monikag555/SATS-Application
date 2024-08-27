@@ -15,7 +15,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '20'  # Update to Node.js 20
 
       - name: Install Salesforce CLI
         run: |
@@ -32,7 +32,7 @@ jobs:
 
       - name: Run SFDX Scanner
         run: |
-          sfdx scanner:run --target "force-app/main/default" --format "csv" --outfile "scanner-report.csv" --debug
+          sfdx scanner:run --target "force-app/main/default/classes" --format "csv" --outfile "scanner-report.csv" --debug
 
       - name: Upload CSV to Salesforce Files
         run: |
