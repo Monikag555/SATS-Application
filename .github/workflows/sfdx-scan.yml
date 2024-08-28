@@ -37,7 +37,7 @@ jobs:
 
       - name: Run SFDX Scanner
         run: |
-          sfdx scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv" --ruleset "force-app/main/default/Cat_Security.xml"
+          sfdx scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv" --category "force-app/main/default/Cat_Security.xml"
 
       - name: Encode CSV file to Base64
         id: encode_file
