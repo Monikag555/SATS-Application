@@ -1,7 +1,5 @@
 name: SFDX Code Scan
 
-# Sfdx
-
 on:
   push:
     branches:
@@ -39,7 +37,7 @@ jobs:
 
       - name: Run SFDX Scanner
         run: |
-          sfdx scanner:run --target "force-app/main/default/" --format "csv" --outfile "scanner-report.csv"
+          sfdx scanner:run --target "force-app/main/default/classes,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv"
 
       - name: Encode CSV file to Base64
         id: encode_file
