@@ -1,5 +1,15 @@
 <template>
-    <lightning-card title="CSV Data">
+    <lightning-card title="Vulnerability Report">
+        <lightning-combobox
+            name="scannerReportFiles"
+            label=" Select Vulnerability Report"
+            value={selectedFileId}
+            placeholder="Select a Scanner Report"
+            options={fileOptions}
+            onchange={handleFileChange}
+            class="box">
+        </lightning-combobox>
+
         <template if:true={data}>
             <lightning-datatable
                 key-field="id"

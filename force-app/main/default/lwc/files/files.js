@@ -1,21 +1,38 @@
-import { LightningElement, track } from 'lwc';
-import getLatestFileId from '@salesforce/apex/File.getLatestFileId';
+import { LightningElement, track, wire } from 'lwc';
+import getAllScannerReportFiles from '@salesforce/apex/File.getAllScannerReportFiles';
 import getCSVFileContent from '@salesforce/apex/File.getCSVFileContent';
 
 export default class CsvTable extends LightningElement {
     @track data = [];
     @track columns = [];
     @track error;
+    @track fileOptions = [];
+    @track selectedFileId;
 
     connectedCallback() {
-        this.loadFileIdAndData();
+        this.loadFileOptions();
     }
 
-    loadFileIdAndData() {
-        getLatestFileId()
-            .then(fileId => {
-                return getCSVFileContent({ fileId: fileId });
+    loadFileOptions() {
+        getAllScannerReportFiles()
+            .then(files => {
+                this.fileOptions = files.map(file => ({
+                    label: file.label,
+                    value: file.id
+                }));
             })
+            .catch(error => {
+                this.error = 'Error loading file options: ' + error.body.message;
+            });
+    }
+
+    handleFileChange(event) {
+        this.selectedFileId = event.detail.value;
+        this.loadFileData(this.selectedFileId);
+    }
+
+    loadFileData(fileId) {
+        getCSVFileContent({ fileId: fileId })
             .then(result => {
                 const csvData = atob(result); // Decode base64
                 this.processCSVData(csvData);

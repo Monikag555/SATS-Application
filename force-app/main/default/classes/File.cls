@@ -1,13 +1,21 @@
 public with sharing class File {
     @AuraEnabled(cacheable=true)
-    public static String getLatestFileId() {
-        // Query the latest ContentVersion based on CreatedDate
-        ContentVersion latestContentVersion = [SELECT ContentDocumentId 
-                                              FROM ContentVersion 
-                                              WHERE Title = 'Scanner Report' 
-                                              ORDER BY CreatedDate DESC 
-                                              LIMIT 1];
-        return latestContentVersion.ContentDocumentId;
+    public static List<Map<String, String>> getAllScannerReportFiles() {
+        List<ContentVersion> contentVersions = [
+            SELECT ContentDocumentId, Title, CreatedDate 
+            FROM ContentVersion 
+            WHERE Title LIKE 'Scanner Report%' 
+            ORDER BY CreatedDate DESC
+        ];
+
+        List<Map<String, String>> files = new List<Map<String, String>>();
+        for (ContentVersion cv : contentVersions) {
+            Map<String, String> fileData = new Map<String, String>();
+            fileData.put('id', cv.ContentDocumentId);
+            fileData.put('label', cv.Title + ' - ' + cv.CreatedDate.format('yyyy-MM-dd HH:mm:ss'));
+            files.add(fileData);
+        }
+        return files;
     }
 
     @AuraEnabled(cacheable=true)
