@@ -132,56 +132,72 @@ export default class AtsDashboard extends LightningElement {
         getHighestStageRecord({ consultantName })
             .then(candidate => {
                 if (candidate) {
+                    if (candidate.Interview_Status__c === 'Failed' && this.data.length === 1) {
+                        // Case where there's only one record and its Interview_Status is Failed
+                        this.modalData = [
+                            {
+                                key: `${candidate.Id}_stage1`,
+                                text: `${candidate.First_Name__c} has only one record with Interview Failed`,
+                                circleClass: 'circle re_color',
+                                hasNext: false,
+                                lineClass: ''
+                            }
+                        ];
+                    } else {
+                        // Normal workflow stages
+                        this.modalData = [
+                            {
+                                key: `${candidate.Id}_stage1`,
+                                text: `${candidate.First_Name__c} is assigned to ${candidate.Sales_Team_Member__c}`,
+                                circleClass: 'circle color',
+                                hasNext: true,
+                                lineClass: 'vertical-line color'
+                            },
+                            {
+                                key: `${candidate.Id}_stage2`,
+                                text: candidate.Job_Submitted__c ? `Submitted to Vendor ${candidate.Vendor_Name__c}` : 'Submitted',
+                                circleClass: candidate.Job_Submitted__c ? 'circle color' : 'circle flow_color',
+                                hasNext: true,
+                                lineClass: candidate.Job_Submitted__c ? 'vertical-line color' : 'vertical-line flow_color'
+                            },
+                            {
+                                key: `${candidate.Id}_stage3`,
+                                text: candidate.Interview_Schedule_Date__c ? `Interview Scheduled on ${candidate.Interview_Schedule_Date__c}` : 'Interview Scheduled',
+                                circleClass: candidate.Interview_Schedule_Date__c ? 'circle color' : 'circle flow_color',
+                                hasNext: true,
+                                lineClass: candidate.Interview_Schedule_Date__c ? 'vertical-line color' : 'vertical-line flow_color'
+                            },
+                            {
+                                key: `${candidate.Id}_stage4`,
+                                text: candidate.Interview_Status__c === 'Cleared' ? 'Interview Cleared' :
+                                      candidate.Interview_Status__c === 'Failed' ? 'Interview Failed' : 'Interview Status',
+                                circleClass: candidate.Interview_Status__c === 'Cleared' ? 'circle color' :
+                                candidate.Interview_Status__c === 'Failed' ? 'circle flow_color' : 'circle flow_color',
+                                hasNext: true,
+                                lineClass: candidate.Interview_Status__c === 'Cleared' ? 'vertical-line color' :
+                                          candidate.Interview_Status__c === 'Failed' ? 'vertical-line flow_color' : 'vertical-line flow_color'
+                            },
+                            {
+                                key: `${candidate.Id}_stage5`,
+                                text: candidate.Interview_Status__c === 'Failed' ? `${candidate.First_Name__c} Re-Assigned to Job Pool` : 
+                                candidate.Placement_Confirmed__c ? 'Placement Confirmed' : 'Placement Confirmation',
+                                circleClass: candidate.Interview_Status__c === 'Failed' ? 'circle re_color' : 
+                                candidate.Placement_Confirmed__c ? 'circle color' : 'circle flow_color',
+                                hasNext: false,
+                                lineClass: ''
+                            }
+                        ];
+                    }
+                } else {
                     this.modalData = [
                         {
-                            key: `${candidate.Id}_stage1`,
-                            text: `${candidate.First_Name__c} is assigned to ${candidate.Sales_Team_Member__c}`,
-                            circleClass: 'circle color',
-                            hasNext: true,
-                            lineClass: 'vertical-line color'
-                        },
-                        {
-                            key: `${candidate.Id}_stage2`,
-                            text: candidate.Job_Submitted__c ? `Submitted to Vendor ${candidate.Vendor_Name__c}` : 'Submitted',
-                            circleClass: candidate.Job_Submitted__c ? 'circle color' : 'circle flow_color',
-                            hasNext: true,
-                            lineClass: candidate.Job_Submitted__c ? 'vertical-line color' : 'vertical-line flow_color'
-                        },
-                        {
-                            key: `${candidate.Id}_stage3`,
-                            text: candidate.Interview_Schedule_Date__c ? `Interview Scheduled on ${candidate.Interview_Schedule_Date__c}` : 'Interview Scheduled',
-                            circleClass: candidate.Interview_Schedule_Date__c ? 'circle color' : 'circle flow_color',
-                            hasNext: true,
-                            lineClass: candidate.Interview_Schedule_Date__c ? 'vertical-line color' : 'vertical-line flow_color'
-                        },
-                        {
-                            key: `${candidate.Id}_stage4`,
-                            text: candidate.Interview_Status__c === 'Cleared' ? 'Interview Cleared' :
-                                  candidate.Interview_Status__c === 'Failed' ? 'Interview Failed' : 'Interview Status',
-                            circleClass: candidate.Interview_Status__c === 'Cleared' ? 'circle color' :
-                            candidate.Interview_Status__c === 'Failed' ? 'circle flow_color' : 'circle flow_color',
-                            hasNext: true,
-                            lineClass: candidate.Interview_Status__c === 'Cleared' ? 'vertical-line color' :
-                                      candidate.Interview_Status__c === 'Failed' ? 'vertical-line flow_color' : 'vertical-line flow_color'
-                        },
-                        {
-                            key: `${candidate.Id}_stage5`,
-                            text: candidate.Interview_Status__c === 'Failed' ? `${candidate.First_Name__c} Re-Assigned to Job Pool` : 
-                            candidate.Placement_Confirmed__c ? 'Placement Confirmed' : 'Placement Confirmation',
-                            circleClass: candidate.Interview_Status__c === 'Failed' ? 'circle re_color' : 
-                            candidate.Placement_Confirmed__c ? 'circle color' : 'circle flow_color',
+                            key: 'no_data',
+                            text: 'No data available',
+                            circleClass: 'circle',
                             hasNext: false,
                             lineClass: ''
                         }
                     ];
-                } else {
-                    this.modalData = {
-                        stage1: 'No data available',
-                        stage2: '',
-                        stage3: '',
-                        stage4: '',
-                        stage5: ''
-                    };
                 }
                 this.isModalOpen = true;
                 setTimeout(() => {
@@ -190,15 +206,18 @@ export default class AtsDashboard extends LightningElement {
             })
             .catch(error => {
                 this.error = error;
-                this.modalData = {
-                    stage1: 'Error loading data',
-                    stage2: '',
-                    stage3: '',
-                    stage4: '',
-                    stage5: ''
-                };
+                this.modalData = [
+                    {
+                        key: 'error',
+                        text: 'Error loading data',
+                        circleClass: 'circle',
+                        hasNext: false,
+                        lineClass: ''
+                    }
+                ];
             });
     }
+    
     
     closeModal() {
         this.isModalOpen = false;
