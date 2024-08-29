@@ -17,7 +17,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20'
+          node-version: '18'  # Updated to Node.js 18
 
       - name: Install Salesforce CLI
         run: |
@@ -25,6 +25,7 @@ jobs:
 
       - name: Install SFDX Scanner Plugin
         run: |
+          sfdx plugins:uninstall @salesforce/sfdx-scanner || true
           sfdx plugins:install @salesforce/sfdx-scanner
 
       - name: Verify SFDX CLI Installation
@@ -49,7 +50,6 @@ jobs:
 
       - name: Upload CSV Report to Salesforce
         run: |
-          # Create a ContentDocument
           contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
             -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
             -H "Content-Type: application/json" \
@@ -59,10 +59,8 @@ jobs:
               "VersionData": "'"$(cat encoded_report.txt)"'"
             }')
 
-          # Check for errors in the response
           echo "Response: $contentDocumentResponse"
           
-          # Extract ContentVersionId and ContentDocumentId from the response
           contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
 
           if [ -z "$contentVersionId" ]; then
@@ -72,13 +70,11 @@ jobs:
 
           echo "ContentVersionId: $contentVersionId"
 
-          # Query ContentDocument using ContentVersionId
           contentDocumentResponse=$(curl -X GET https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/$contentVersionId \
             -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}")
 
           echo "ContentDocument Response: $contentDocumentResponse"
           
-          # Extract ContentDocumentId
           contentDocumentId=$(echo $contentDocumentResponse | jq -r '.ContentDocumentId // empty')
 
           if [ -z "$contentDocumentId" ]; then
