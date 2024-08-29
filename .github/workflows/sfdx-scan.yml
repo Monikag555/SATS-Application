@@ -8,8 +8,7 @@ on:
 
 jobs:
   run-scanner:
-    runs-on: Ubuntu 22.04.4 LTS
-
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
