@@ -1,11 +1,10 @@
 name: SFDX Code Scan
 
-#sfdx to sf
 on:
   push:
     branches:
-    - main
-    - '**'
+      - main
+      - '**'
 
 jobs:
   run-scanner:
@@ -22,29 +21,23 @@ jobs:
 
       - name: Install Salesforce CLI
         run: |
-          npm install --global sf-cli
-
+          npm install --global sfdx-cli
       - name: Install SFDX Scanner Plugin
         run: |
-          sf plugins:install @salesforce/sfdx-scanner
-
+          sfdx plugins:install @salesforce/sfdx-scanner
       - name: Verify SFDX CLI Installation
         run: |
-          sf --version
-
+          sfdx --version
       - name: Verify SFDX Scanner Plugin Installation
         run: |
-          sf plugins --core
-
+          sfdx plugins --core
       - name: Run SFDX Scanner
         run: |
-          sf scanner:run --target "force-app/main/default/classes,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv"
-
+          sfdx scanner:run --target "force-app/main/default/classes,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv"
       - name: Encode CSV file to Base64
         id: encode_file
         run: |
           base64 scanner-report.csv | tr -d '\n' > encoded_report.txt
-
       - name: Install jq
         run: sudo apt-get install -y jq
 
@@ -59,10 +52,9 @@ jobs:
               "PathOnClient": "scanner-report.csv",
               "VersionData": "'"$(cat encoded_report.txt)"'"
             }')
-
           # Check for errors in the response
           echo "Response: $contentDocumentResponse"
-
+          
           # Extract ContentVersionId and ContentDocumentId from the response
           contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
           if [ -z "$contentVersionId" ]; then
@@ -70,12 +62,11 @@ jobs:
             exit 1
           fi
           echo "ContentVersionId: $contentVersionId"
-
           # Query ContentDocument using ContentVersionId
           contentDocumentResponse=$(curl -X GET https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/$contentVersionId \
             -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}")
           echo "ContentDocument Response: $contentDocumentResponse"
-
+          
           # Extract ContentDocumentId
           contentDocumentId=$(echo $contentDocumentResponse | jq -r '.ContentDocumentId // empty')
           if [ -z "$contentDocumentId" ]; then
