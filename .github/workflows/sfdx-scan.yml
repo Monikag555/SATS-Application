@@ -17,7 +17,11 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '20'
+
+      - name: Clear Yarn Cache
+        run: |
+          yarn cache clean
 
       - name: Install Salesforce CLI
         run: |
@@ -25,7 +29,7 @@ jobs:
 
       - name: Install SFDX Scanner Plugin
         run: |
-          sfdx plugins:install @salesforce/sfdx-scanner@latest
+          sfdx plugins:install @salesforce/sfdx-scanner
 
       - name: Verify SFDX CLI Installation
         run: |
@@ -37,7 +41,7 @@ jobs:
 
       - name: Run SFDX Scanner
         run: |
-          node --trace-warnings $(which sfdx) scanner:run --target "force-app/main/default/classes,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv"
+          sfdx scanner:run --target "force-app/main/default/classes,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv"
 
       - name: Encode CSV file to Base64
         id: encode_file
@@ -65,7 +69,6 @@ jobs:
             exit 1
           fi
           echo "ContentVersionId: $contentVersionId"
-          
           contentDocumentResponse=$(curl -X GET https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/$contentVersionId \
             -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}")
           echo "ContentDocument Response: $contentDocumentResponse"
