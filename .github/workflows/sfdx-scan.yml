@@ -20,14 +20,14 @@ jobs:
       - name: Install CLI
         run: npm install @salesforce/cli --global
       - name: Install Scanner Plugin
-        run: sf plugins install @salesforce/sfdx-scanner
+        run: sf plugins install @salesforce/sfdx-scanner --force
       - name: Verify SFDX CLI Installation
         run: sf --version
       - name: Verify SFDX Scanner Plugin Installation
         run: sf plugins --core
       - name: Run SFDX Scanner
         run: |
-          sf scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --ruleset "force-app/main/default/apex_ruleSet_custom.xml" --format "csv" --outfile "scanner-report.csv"
+          sf scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --ruleset "force-app/main/default/apex_ruleSet_custom.xml" --format "csv" --outfile "scanner-report.csv" --verbose
         env:
           SF_LAZY_LOAD_MODULES: 'true'
           SF_AUTOUPDATE_DISABLE: 'true'
