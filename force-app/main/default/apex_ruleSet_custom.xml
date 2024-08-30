@@ -9,19 +9,5 @@
         Custom ruleset to check for Apex CRUD violations using the ApexCRUDViolation rule.
     </description>
 
-    <!-- Reference the existing PMD ruleset that includes ApexCRUDViolation -->
-    <rule ref="rulesets/apex/security.xml">
-        <!-- This rule set should include the ApexCRUDViolation rule -->
-    </rule>
-
-    <!-- Optionally, you can define additional configuration here if needed -->
-    <rule name="ApexCRUDViolation">
-        <description>
-            Detects Apex CRUD (Create, Read, Update, Delete) violations.
-        </description>
-        <!-- Configure properties if needed -->
-        <!-- <properties>
-            <property name="property-name" value="property-value"/>
-        </properties> -->
-    </rule>
+    <rule ref="rulesets/apex/security.xml"/>
 </ruleset>
