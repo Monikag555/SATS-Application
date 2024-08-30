@@ -27,26 +27,32 @@ jobs:
         run: sf plugins --core
       - name: Run SFDX Scanner
         run: |
-          sf scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv" --ruleset "force-app/main/default/apex_ruleSet_custom.xml"
+          sf scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv"
         env:
           SF_LAZY_LOAD_MODULES: 'true'
           SF_AUTOUPDATE_DISABLE: 'true'
           SF_DISABLE_AUTOUPDATE: 'true'
-      - name: Encode CSV file to Base64
-        id: encode_file
+      - name: Install csvkit for CSV processing
+        run: sudo apt-get install -y csvkit
+      - name: Filter Best Practices Results
         run: |
-          base64 scanner-report.csv | tr -d '\n' > encoded_report.txt
+          # Filter the CSV file for Best Practices category
+          csvgrep -c "category" -m "Best Practices" scanner-report.csv > filtered-report.csv
+      - name: Encode Filtered CSV file to Base64
+        id: encode_filtered_file
+        run: |
+          base64 filtered-report.csv | tr -d '\n' > encoded_filtered_report.txt
       - name: Install jq
         run: sudo apt-get install -y jq
-      - name: Upload CSV Report to Salesforce
+      - name: Upload Filtered CSV Report to Salesforce
         run: |
           contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
             -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d '{
-              "Title": "Scanner Report",
-              "PathOnClient": "scanner-report.csv",
-              "VersionData": "'"$(cat encoded_report.txt)"'"
+              "Title": "Filtered Scanner Report",
+              "PathOnClient": "filtered-report.csv",
+              "VersionData": "'"$(cat encoded_filtered_report.txt)"'"
             }')
           echo "Response: $contentDocumentResponse"
           
