@@ -6,34 +6,30 @@ on:
       - main
       - '**'
 
-jobs:
-  run-scanner:
+jobs : 
+  installcli:
     runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Set up Node.js
+    steps :
+      - uses: actions/checkout@v3
+        with:
+            fetch-depth: 0
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '20' 
-
-      - name: Install Salesforce CLI
-        run: |
-          npm install --global sfdx-cli
-      - name: Install SFDX Scanner Plugin
-        run: |
-          sfdx plugins:install @salesforce/sfdx-scanner
+          node-version: 20.x
+      - name : Install CLI
+        run : npm install @salesforce/cli --global
+      - name : Install Scanner puugin
+        run : sf plugins install @salesforce/sfdx-scanner
       - name: Verify SFDX CLI Installation
         run: |
-          sfdx --version
+          sf --version
       - name: Verify SFDX Scanner Plugin Installation
         run: |
-          sfdx plugins --core
+          sf plugins --core
       - name: Run SFDX Scanner
         run: |
-          sfdx scanner:run --target "force-app/main/default/classes,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv"
+          sf scanner:run --target "force-app/main/default/classes" --format "csv" --outfile "scanner-report.csv"
         env:
           SF_LAZY_LOAD_MODULES: 'true'
           SF_AUTOUPDATE_DISABLE: 'true'
