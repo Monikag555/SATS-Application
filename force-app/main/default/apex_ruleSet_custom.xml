@@ -16,13 +16,11 @@
             <property name="name" value="ApexCRUDViolation"/>
         </properties>
     </rule>
-
-    <!-- Alternatively, if the rule is not found, you may define it directly (not preferred if already available in a ruleset) -->
-    <!--
+    
     <rule name="ApexCRUDViolation">
         <description>Checks for CRUD violations in Apex classes.</description>
         <priority>2</priority>
     </rule>
-    -->
+   
 
 </ruleset>

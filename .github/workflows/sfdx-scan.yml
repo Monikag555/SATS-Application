@@ -20,7 +20,7 @@ jobs:
       - name: Install CLI
         run: npm install @salesforce/cli --global
       - name: Install Scanner Plugin
-        run: sf plugins install @salesforce/sfdx-scanner --force
+        run: sf plugins install @salesforce/sfdx-scanner
       - name: Verify SFDX CLI Installation
         run: sf --version
       - name: Verify SFDX Scanner Plugin Installation
