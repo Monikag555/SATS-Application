@@ -37,7 +37,7 @@ jobs:
       - name: Filter Best Practices Results
         run: |
           # Filter the CSV file for Best Practices category
-          csvgrep -c "Category" -m "Best Practices" scanner-report.csv > filtered-report.csv
+          csvgrep -c "Category" -m "Best Practices" scanner-report.csv > scanner-report.csv
       - name: Encode Filtered CSV file to Base64
         id: encode_filtered_file
         run: |
