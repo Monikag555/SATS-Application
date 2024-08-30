@@ -1,35 +1,33 @@
 name: SFDX Code Scan
-#sfdx
+
 on:
   push:
     branches:
       - main
       - '**'
 
-jobs : 
+jobs:
   installcli:
     runs-on: ubuntu-latest
-    steps :
+    steps:
       - uses: actions/checkout@v3
         with:
-            fetch-depth: 0
+          fetch-depth: 0
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20.x
-      - name : Install CLI
-        run : npm install @salesforce/cli --global
-      - name : Install Scanner puugin
-        run : sf plugins install @salesforce/sfdx-scanner
+      - name: Install CLI
+        run: npm install @salesforce/cli --global
+      - name: Install Scanner Plugin
+        run: sf plugins install @salesforce/sfdx-scanner
       - name: Verify SFDX CLI Installation
-        run: |
-          sf --version
+        run: sf --version
       - name: Verify SFDX Scanner Plugin Installation
-        run: |
-          sf plugins --core
+        run: sf plugins --core
       - name: Run SFDX Scanner
         run: |
-          sf scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv" --category "force-app/main/default/apex_ruleSet_custom.xml"
+          sf scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --ruleset "force-app/main/default/apex_ruleSet_custom.xml" --format "csv" --outfile "scanner-report.csv"
         env:
           SF_LAZY_LOAD_MODULES: 'true'
           SF_AUTOUPDATE_DISABLE: 'true'
@@ -40,7 +38,6 @@ jobs :
           base64 scanner-report.csv | tr -d '\n' > encoded_report.txt
       - name: Install jq
         run: sudo apt-get install -y jq
-
       - name: Upload CSV Report to Salesforce
         run: |
           contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \

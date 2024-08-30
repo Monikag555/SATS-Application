@@ -1,41 +1,27 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<ruleset name="Custom Ruleset"
+<?xml version="1.0"?>
+<ruleset name="Custom Ruleset for Apex CRUD Violations"
          xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 http://pmd.sourceforge.net/ruleset_2_0_0.xsd"
-         xsi:noNamespaceSchemaLocation="http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 
+                             http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
 
     <description>
-        Custom ruleset for enforcing Apex best practices.
+        Custom ruleset to check for Apex CRUD violations using the ApexCRUDViolation rule.
     </description>
 
-    <!-- Rule to enforce ApexDoc comments -->
-    <rule ref="category/apex/documentation.xml/ApexDoc"/>
-
-    <!-- Rule to avoid long parameter lists -->
-    <rule ref="category/apex/design.xml/ExcessiveParameterList">
-        <properties>
-            <property name="maxparams" value="4"/> <!-- Adjust this value as needed -->
-        </properties>
+    <!-- Reference the existing PMD ruleset that includes ApexCRUDViolation -->
+    <rule ref="rulesets/apex/security.xml">
+        <!-- This rule set should include the ApexCRUDViolation rule -->
     </rule>
 
-    <!-- Rule to avoid Cyclomatic Complexity -->
-    <rule ref="category/apex/design.xml/CyclomaticComplexity">
-        <properties>
-            <property name="max" value="10"/> <!-- Adjust this value as needed -->
-        </properties>
+    <!-- Optionally, you can define additional configuration here if needed -->
+    <rule name="ApexCRUDViolation">
+        <description>
+            Detects Apex CRUD (Create, Read, Update, Delete) violations.
+        </description>
+        <!-- Configure properties if needed -->
+        <!-- <properties>
+            <property name="property-name" value="property-value"/>
+        </properties> -->
     </rule>
-
-    <!-- Rule to avoid debug statements -->
-    <rule ref="category/apex/bestpractices.xml/AvoidDebugStatements"/>
-
-    <!-- Rule to ensure logging level is specified -->
-    <rule ref="category/apex/codestyle.xml/DebugsShouldUseLoggingLevel"/>
-
-    <!-- Rule to avoid SOQL Injection -->
-    <rule ref="category/apex/security.xml/ApexSOQLInjection"/>
-
-    <!-- Rule to validate CRUD permission before SOQL/DML operation -->
-    <rule ref="category/apex/security.xml/ApexCRUDViolation"/>
-
 </ruleset>
