@@ -37,11 +37,11 @@ jobs:
       - name: Filter Best Practices Results
         run: |
           # Filter the CSV file for Best Practices category
-          csvgrep -c "Category" -m "Best Practices" scanner-report.csv > filtered-report.csv
+          csvgrep -c "Category" -m "Best Practices" scanner-report.csv > scanner-report.csv
       - name: Encode Filtered CSV file to Base64
         id: encode_filtered_file
         run: |
-          base64 filtered-report.csv | tr -d '\n' > encoded_filtered_report.txt
+          base64 scanner-report.csv | tr -d '\n' > encoded_filtered_report.txt
       - name: Install jq
         run: sudo apt-get install -y jq
       - name: Upload Filtered CSV Report to Salesforce
@@ -51,7 +51,7 @@ jobs:
             -H "Content-Type: application/json" \
             -d '{
               "Title": "Filtered Scanner Report",
-              "PathOnClient": "filtered-report.csv",
+              "PathOnClient": "scanner-report.csv",
               "VersionData": "'"$(cat encoded_filtered_report.txt)"'"
             }')
           echo "Response: $contentDocumentResponse"
