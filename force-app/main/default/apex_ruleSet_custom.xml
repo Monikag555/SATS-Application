@@ -1,26 +1,16 @@
 <?xml version="1.0"?>
-<ruleset name="Custom Apex Ruleset"
-         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 
-                             http://pmd.sourceforge.net/ruleset_2_0_0.xsd">
-
-    <description>
-        Custom ruleset for Apex with specific focus on CRUD operations.
-    </description>
-
-    <!-- Reference the existing ruleset containing the rule -->
-    <rule ref="rulesets/apex/security.xml">
-        <!-- Include the specific rule if it's defined within the referenced ruleset -->
-        <properties>
-            <property name="name" value="ApexCRUDViolation"/>
-        </properties>
+<ruleset name="Apex Security Ruleset" xmlns="http://pmd.sf.net/ruleset/2.0.0">
+    <description>Ruleset for detecting security issues in Apex code</description>
+    
+    <!-- Example Security Rule: SOQL Injection -->
+    <rule ref="rulesets/apex/security/soql_injection.xml">
+        <description>Detects potential SOQL Injection vulnerabilities</description>
     </rule>
     
-    <rule name="ApexCRUDViolation">
-        <description>Checks for CRUD violations in Apex classes.</description>
-        <priority>2</priority>
+    <!-- Example Security Rule: Hardcoded Secrets -->
+    <rule ref="rulesets/apex/security/hardcoded_secrets.xml">
+        <description>Detects hardcoded credentials or secrets</description>
     </rule>
-   
-
+    
+    <!-- Add other security rules here -->
 </ruleset>

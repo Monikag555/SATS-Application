@@ -27,7 +27,7 @@ jobs:
         run: sf plugins --core
       - name: Run SFDX Scanner
         run: |
-          sf scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --ruleset "force-app/main/default/apex_ruleSet_custom.xml" --format "csv" --outfile "scanner-report.csv" --verbose
+          sf scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv" --ruleset "force-app/main/default/apex_ruleSet_custom.xml"
         env:
           SF_LAZY_LOAD_MODULES: 'true'
           SF_AUTOUPDATE_DISABLE: 'true'
