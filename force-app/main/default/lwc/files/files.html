@@ -1,10 +1,13 @@
 <template>
     <lightning-card title="Vulnerability Report">
         <lightning-layout horizontal-align="spread">
-            <lightning-combobox name="scannerReportFiles" label="Select Vulnerability Report"
-                value={selectedFileId} placeholder="Select a Scanner Report"
-                options={fileOptions} onchange={handleFileChange} class="box">
-            </lightning-combobox>
+            <lightning-combobox
+        label="Select Vulnerability Report"
+        value={selectedFileId}
+        options={fileOptions}
+        onchange={handleFileSelection}
+        class="box">
+    </lightning-combobox>
             <lightning-layout-item size="3">
                 <lightning-button label="Reset Filters" onclick={resetFilters}></lightning-button>
             </lightning-layout-item>
@@ -38,6 +41,13 @@
         <template if:true={categoryCounts.length}>
             <div class="chart-container" style="position: relative; height: 400px; width: 600px; margin: 20px auto;">
                 <canvas lwc:dom="manual" class="categoryChart"></canvas>
+            </div>
+        </template>
+
+        <!-- Display Category Counts Pie Chart -->
+        <template if:true={engineCounts.length}>
+            <div class="chart-container" style="position: relative; height: 400px; width: 600px; margin: 20px auto;">
+                <canvas lwc:dom="manual" class="engineChart"></canvas>
             </div>
         </template>
  

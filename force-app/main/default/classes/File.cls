@@ -1,5 +1,4 @@
 public with sharing class File {
-    
     @AuraEnabled(cacheable=true)
     public static List<Map<String, String>> getAllScannerReportFiles() {
         List<ContentVersion> contentVersions = [
@@ -106,6 +105,57 @@ public static String getCSVFileContent(Id fileId, String categorySearch, String 
     
     return encodedContent;
 }
+
+
+
+    @AuraEnabled
+    public static void importVulnerabilityData(Id fileId) {
+        // Step 1: Delete existing Vulnerability records
+        List<Vulnerability__c> existingRecords = [SELECT Id FROM Vulnerability__c];
+        delete existingRecords;
+
+        // Step 2: Get the CSV content of the selected file
+        ContentVersion file = [
+            SELECT VersionData 
+            FROM ContentVersion 
+            WHERE ContentDocumentId = :fileId 
+            LIMIT 1
+        ];
+        String csvContent = file.VersionData.toString();  // Convert Blob to String
+        
+        // Step 3: Parse the CSV content and create Vulnerability records
+        List<Vulnerability__c> newRecords = new List<Vulnerability__c>();
+        List<String> lines = csvContent.split('\n');
+
+        // Assume the first line contains headers
+        if (!lines.isEmpty()) {
+            List<String> headers = lines[0].split(',');
+
+            for (Integer i = 1; i < lines.size(); i++) {
+                List<String> columns = lines[i].split(',');
+
+                Vulnerability__c vuln = new Vulnerability__c();
+                // Map CSV columns to object fields
+                vuln.Problem__c = columns[0].trim();  // Assuming the first column is Name
+                vuln.Severity__c = columns[1].trim();  // Assuming the second column is Category
+                vuln.File__c = columns[2].trim();  // Assuming the third column is Engine
+                vuln.Line__c = columns[3].trim();  // Assuming the fourth column is Severity
+                vuln.Column__c = columns[4].trim();  // Assuming the first column is Name
+                vuln.Rule__c = columns[5].trim();  // Assuming the second column is Category
+                vuln.Description__c = columns[6].trim();  // Assuming the third column is Engine
+                vuln.URL__c = columns[7].trim();
+                vuln.Category__c = columns[8].trim();  // Assuming the third column is Engine
+                vuln.Engine__c = columns[9].trim();
+
+                newRecords.add(vuln);
+            }
+        }
+
+        // Step 4: Insert the new Vulnerability records
+        if (!newRecords.isEmpty()) {
+            insert newRecords;
+        }
+    }
 
 
 @AuraEnabled(cacheable=true)

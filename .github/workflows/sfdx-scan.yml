@@ -1,5 +1,6 @@
 name: SFDX Code Scan
 
+#sfdx
 on:
   push:
     branches:
@@ -25,20 +26,46 @@ jobs:
         run: sf --version
       - name: Verify SFDX Scanner Plugin Installation
         run: sf plugins --core
-      - name: Run SFDX Scanner
+      - name: Identify Changed Files
+        id: delta_changes
+        run: |
+          git diff --name-only HEAD^ HEAD > changed_files.txt
+          if [ ! -s changed_files.txt ]; then
+            echo "No files changed, skipping delta scan."
+            exit 0
+          fi
+          echo "Changed files:"
+          cat changed_files.txt
+      - name: Run SFDX Scanner for Overall Code
         run: |
           sf scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv"
         env:
           SF_LAZY_LOAD_MODULES: 'true'
           SF_AUTOUPDATE_DISABLE: 'true'
           SF_DISABLE_AUTOUPDATE: 'true'
-      - name: Encode CSV file to Base64
-        id: encode_file
+      - name: Run SFDX Scanner for Delta Changes
+        run: |
+          # Run scanner on the files identified as changed
+          changed_files=$(cat changed_files.txt | grep -E '\.cls$|\.js$|\.html$')
+          if [ -z "$changed_files" ]; then
+            echo "No relevant files changed, skipping delta scan."
+            exit 0
+          fi
+          sf scanner:run --target "$changed_files" --format "csv" --outfile "delta-changes-report.csv"
+        env:
+          SF_LAZY_LOAD_MODULES: 'true'
+          SF_AUTOUPDATE_DISABLE: 'true'
+          SF_DISABLE_AUTOUPDATE: 'true'
+      - name: Encode CSV files to Base64
+        id: encode_files
         run: |
           base64 scanner-report.csv | tr -d '\n' > encoded_report.txt
+          if [ -f delta-changes-report.csv ]; then
+            base64 delta-changes-report.csv | tr -d '\n' > encoded_delta_report.txt
+          fi
       - name: Install jq
         run: sudo apt-get install -y jq
-      - name: Upload CSV Report to Salesforce
+      - name: Upload Overall CSV Report to Salesforce
         run: |
           contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
             -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
@@ -47,6 +74,39 @@ jobs:
               "Title": "Scanner Report",
               "PathOnClient": "scanner-report.csv",
               "VersionData": "'"$(cat encoded_report.txt)"'"
+            }')
+          echo "Response: $contentDocumentResponse"
+          
+          contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
+          if [ -z "$contentVersionId" ]; then
+            echo "Error: Failed to upload file. No ContentVersionId found."
+            exit 1
+          fi
+          echo "ContentVersionId: $contentVersionId"
+          
+          contentDocumentResponse=$(curl -X GET https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/$contentVersionId \
+            -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}")
+          echo "ContentDocument Response: $contentDocumentResponse"
+          
+          contentDocumentId=$(echo $contentDocumentResponse | jq -r '.ContentDocumentId // empty')
+          if [ -z "$contentDocumentId" ]; then
+            echo "Error: Failed to retrieve ContentDocumentId. No ContentDocumentId found."
+            exit 1
+          fi
+          echo "ContentDocumentId: $contentDocumentId"
+        env:
+          SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
+        shell: bash
+      - name: Upload Delta Changes CSV Report to Salesforce
+        if: steps.encode_files.outputs.encoded_delta_report != ''
+        run: |
+          contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
+            -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "Title": "Delta Changes Report",
+              "PathOnClient": "delta-changes-report.csv",
+              "VersionData": "'"$(cat encoded_delta_report.txt)"'"
             }')
           echo "Response: $contentDocumentResponse"
           

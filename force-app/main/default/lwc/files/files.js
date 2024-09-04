@@ -6,6 +6,8 @@ import getEngineCounts from '@salesforce/apex/File.getEngineCounts';
 import getSeverityCounts from '@salesforce/apex/File.getSeverityCounts';
 import { loadScript } from 'lightning/platformResourceLoader';
 import ChartJS from '@salesforce/resourceUrl/ChartJS';
+import importVulnerabilityData from '@salesforce/apex/File.importVulnerabilityData';
+
  
 export default class CsvTable extends LightningElement {
     @track data = [];
@@ -28,7 +30,9 @@ export default class CsvTable extends LightningElement {
     chartInitialized = false;
  
     // Initialize Chart.js
-    chart;
+   
+    categoryChart;
+    engineChart;
  
     @track categoryCountColumns = [
         { label: 'Category', fieldName: 'category' },
@@ -97,6 +101,28 @@ this.fileOptions = files.map(file => ({ label: file.label, value: file.id }));
                 this.handleError('Error loading file options', error);
             });
     }
+
+    handleFileSelection(event) {
+        this.selectedFileId = event.target.value;
+        if (this.selectedFileId) {
+            // Call the Apex method to import the CSV data into the Vulnerability object
+            importVulnerabilityData({ fileId: this.selectedFileId })
+                .then(() => {
+                    // Handle success, e.g., show a success message
+                    console.log('Vulnerability data imported successfully');
+                })
+                .catch(error => {
+                    // Handle error, e.g., show an error message
+                    console.error('Error importing vulnerability data', error);
+                });
+        }
+        this.loadFileData();
+        this.loadCategoryCounts(); // Load category counts when file is selected
+        this.loadEngineCounts();   // Load engine counts when file is selected
+        this.loadSeverityCounts(); // Load severity counts when file is selected
+        this.renderCategoryChart();
+        this.renderEngineChart();
+    }
  
     handleFileChange(event) {
         this.selectedFileId = event.detail.value;
@@ -126,28 +152,22 @@ this.fileOptions = files.map(file => ({ label: file.label, value: file.id }));
     
  
     renderCategoryChart() {
-        console.log("Rendering chart");
-    
         if (!this.categoryCounts || !this.categoryCounts.length) {
-            console.log("No chart data available");
             return;
         }
     
-        // Add a slight delay to ensure canvas is rendered
         setTimeout(() => {
             const ctx = this.template.querySelector('canvas.categoryChart')?.getContext('2d');
             if (!ctx) {
-                console.log("Canvas context not found");
                 return;
             }
     
-            if (this.chart) {
-                this.chart.destroy();
-                console.log("Chart destroyed");
+            if (this.categoryChart) {
+                this.categoryChart.destroy();
             }
     
             try {
-                this.chart = new Chart(ctx, {
+                this.categoryChart = new Chart(ctx, {
                     type: 'pie',
                     data: {
                         labels: this.categoryCounts.map(count => count.category),
@@ -178,11 +198,10 @@ this.fileOptions = files.map(file => ({ label: file.label, value: file.id }));
                         maintainAspectRatio: false
                     }
                 });
-                console.log("Chart successfully rendered");
             } catch (error) {
-                console.error("Error rendering chart", error);
+                console.error("Error rendering category chart", error);
             }
-        }, 100); // Adjust timeout as needed
+        }, 100);
     }
     
     
@@ -204,9 +223,9 @@ this.fileOptions = files.map(file => ({ label: file.label, value: file.id }));
         if (this.selectedFileId && this.chartInitialized) {
             getEngineCounts({ fileId: this.selectedFileId })
                 .then(counts => {
-                    console.log("Raw Engine counts:", counts); // Log raw data
+                    console.log("Raw category counts:", counts); // Log raw data
                     this.engineCounts = Object.entries(counts).map(([engine, count]) => ({ engine, count }));
-                    console.log("Processed category counts:",this.engineCounts);// Log processed data
+                    console.log("Processed category counts:", this.engineCounts); // Log processed data
                     this.renderEngineChart();
                 })
                 .catch(error => {
@@ -215,19 +234,68 @@ this.fileOptions = files.map(file => ({ label: file.label, value: file.id }));
         }
     }
 
-    renderEngineChart(){
-        console.log("Rendering chart");
+
+    renderEngineChart() {
         if (!this.engineCounts || !this.engineCounts.length) {
-            console.log("No chart data available");
             return;
         }
+    
+        setTimeout(() => {
+            const ctx = this.template.querySelector('canvas.engineChart')?.getContext('2d');
+            if (!ctx) {
+                return;
+            }
+    
+            if (this.engineChart) {
+                this.engineChart.destroy();
+            }
+    
+            try {
+                this.engineChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: this.engineCounts.map(count => count.engine),
+                        datasets: [{
+                            label: 'Engine Counts',
+                            data: this.engineCounts.map(count => count.count),
+                            backgroundColor: [
+                                'rgba(255, 99, 132, 0.2)',
+                                'rgba(54, 162, 235, 0.2)',
+                                'rgba(255, 206, 86, 0.2)',
+                                'rgba(75, 192, 192, 0.2)',
+                                'rgba(153, 102, 255, 0.2)',
+                                'rgba(255, 159, 64, 0.2)'
+                            ],
+                            borderColor: [
+                                'rgba(255, 99, 132, 1)',
+                                'rgba(54, 162, 235, 1)',
+                                'rgba(255, 206, 86, 1)',
+                                'rgba(75, 192, 192, 1)',
+                                'rgba(153, 102, 255, 1)',
+                                'rgba(255, 159, 64, 1)'
+                            ],
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false
+                    }
+                });
+            } catch (error) {
+                console.error("Error rendering engine chart", error);
+            }
+        }, 100);
     }
  
     loadSeverityCounts() {
         if (this.selectedFileId) {
             getSeverityCounts({ fileId: this.selectedFileId })
                 .then(counts => {
+
+                    console.log("Raw category counts:", counts); // Log raw data
                     this.severityCounts = Object.entries(counts).map(([severity, count]) => ({ severity, count }));
+                    console.log("Processed category counts:", this.severityCounts); // Log processed data
                 })
                 .catch(error => {
                     this.handleError('Error loading severity counts', error);
@@ -272,9 +340,15 @@ this.fileOptions = files.map(file => ({ label: file.label, value: file.id }));
         this.categoryCounts = [];
         this.engineCounts = [];
         this.severityCounts = [];
-        if (this.chart) {
-            this.chart.destroy();
-        }
+       // Destroy all charts
+    if (this.categoryChart) {
+        this.categoryChart.destroy();
+        this.categoryChart = null;
+    }
+    if (this.engineChart) {
+        this.engineChart.destroy();
+        this.engineChart = null;
+    }
     }
  
     handleCategoryChange(event) {
