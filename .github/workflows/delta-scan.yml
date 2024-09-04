@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main  # Change to the branch you want to monitor
+      - "**"
 
 jobs:
   generate_report:
@@ -16,22 +17,27 @@ jobs:
       - name: Get changed files
         id: get-changes
         run: |
-          git fetch origin
-          BASE_COMMIT=$(git rev-parse HEAD^)
-          git diff --name-only $BASE_COMMIT HEAD > changed_files.txt || true
+          # Fetch all commits to ensure we can reference HEAD~1
+          git fetch --unshallow || true
+          
+          # Check if there is more than one commit
+          if [ "$(git rev-list --count HEAD)" -gt "1" ]; then
+            git diff --name-only HEAD~1 HEAD > changed_files.txt
+          else
+            echo "No previous commit to compare to." > changed_files.txt
+          fi
           cat changed_files.txt
-      
 
       - name: Generate report
         id: generate_report
         run: |
-          # Create a report based on changed files
-          echo "## Delta Report" > delta_report.md
-          echo "The following files were changed in this commit:" >> delta_report.md
-          cat changed_files.txt >> delta_report.md
+          mkdir -p reports
+          echo "## Delta Report" > reports/delta_report.md
+          echo "The following files were changed in this commit:" >> reports/delta_report.md
+          cat changed_files.txt >> reports/delta_report.md
 
       - name: Upload report
         uses: actions/upload-artifact@v3
         with:
           name: delta-report
-          path: delta_report.md
+          path: reports/delta_report.md
