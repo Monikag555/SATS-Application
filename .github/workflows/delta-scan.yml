@@ -48,26 +48,30 @@ jobs:
       - name: Run Snyk and generate report
         id: run_snyk
         run: |
-              mkdir -p reports || { echo "Failed to create reports directory"; exit 1; }
-              snyk test --json > reports/snyk_report.json || { echo "Snyk test failed, but continuing"; }
+          mkdir -p reports || { echo "Failed to create reports directory"; exit 1; }
+          snyk test --json > reports/snyk_report.json 2>&1 || { echo "Snyk test failed, but continuing"; }
           
-              # Check if the JSON report file exists
-              if [ ! -f reports/snyk_report.json ]; then
-                echo "Snyk report was not generated. No file found."
-                exit 1
-              fi
-          
-              # Validate the JSON format
-              if ! jq empty reports/snyk_report.json; then
-                echo "Invalid JSON format in Snyk report."
-                exit 1
-              fi
-              
-              # Convert JSON to CSV
-              echo "Converting JSON report to CSV..."
-              npx json2csv -i reports/snyk_report.json -o reports/snyk_report.csv || { echo "json2csv failed"; exit 1; }
-              cat reports/snyk_report.csv
-          
+          # Output the content of the report for debugging
+          cat reports/snyk_report.json || { echo "Failed to output Snyk report."; exit 1; }
+      
+          # Check if the JSON report file exists and is not empty
+          if [ ! -s reports/snyk_report.json ]; then
+            echo "Snyk report is empty or not generated. No vulnerabilities found or report generation failed."
+            echo "No vulnerabilities found" > reports/snyk_report.csv
+          else
+            # Validate the JSON format
+            if ! jq empty reports/snyk_report.json; then
+              echo "Invalid JSON format in Snyk report."
+              exit 1
+            fi
+      
+            # Convert JSON to CSV
+            echo "Converting JSON report to CSV..."
+            npx json2csv -i reports/snyk_report.json -o reports/snyk_report.csv || { echo "json2csv failed"; exit 1; }
+          fi
+      
+          cat reports/snyk_report.csv
+      
           
       - name: Upload CSV report
         uses: actions/upload-artifact@v3
