@@ -16,9 +16,11 @@ jobs:
       - name: Get changed files
         id: get-changes
         run: |
-          # Get the list of changed files
-          git diff --name-only HEAD~1 HEAD > changed_files.txt
+          git fetch origin
+          BASE_COMMIT=$(git rev-parse HEAD^)
+          git diff --name-only $BASE_COMMIT HEAD > changed_files.txt || true
           cat changed_files.txt
+      
 
       - name: Generate report
         id: generate_report
