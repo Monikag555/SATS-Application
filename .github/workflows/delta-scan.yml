@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main  # Change to the branch you want to monitor
+      - "**"
 
 jobs:
   vulnerability_scan:
@@ -16,7 +17,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'  # Use the appropriate Node.js version for your project
+          node-version: 20.x
 
       - name: Install dependencies
         run: npm install
@@ -49,6 +50,15 @@ jobs:
         run: |
           mkdir -p reports || { echo "Failed to create reports directory"; exit 1; }
           snyk test --json > reports/snyk_report.json || { echo "Snyk test failed, but continuing"; }
+          
+          # Validate the JSON report
+          if [ ! -s reports/snyk_report.json ]; then
+            echo "Snyk report is empty. No vulnerabilities found or report generation failed."
+            exit 1
+          fi
+          
+          # Convert JSON to CSV
+          echo "Converting JSON report to CSV..."
           npx json2csv -i reports/snyk_report.json -o reports/snyk_report.csv || { echo "json2csv failed"; exit 1; }
           cat reports/snyk_report.csv
 
