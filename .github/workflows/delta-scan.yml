@@ -45,27 +45,19 @@ jobs:
       - name: Install Snyk
         run: npm install -g snyk
 
-      - name: Validate Snyk JSON report
-        run: |
-            if ! jq empty reports/snyk_report.json; then
-                echo "Invalid JSON format in Snyk report."
-                exit 1
-            fi
-
-
       - name: Run Snyk and generate report
         id: run_snyk
         run: |
               mkdir -p reports || { echo "Failed to create reports directory"; exit 1; }
               snyk test --json > reports/snyk_report.json || { echo "Snyk test failed, but continuing"; }
-              
-              # Validate the JSON report
-              if [ ! -s reports/snyk_report.json ]; then
-                echo "Snyk report is empty. No vulnerabilities found or report generation failed."
-                exit 0  # Exit without error if no vulnerabilities are found
+          
+              # Check if the JSON report file exists
+              if [ ! -f reports/snyk_report.json ]; then
+                echo "Snyk report was not generated. No file found."
+                exit 1
               fi
-              
-              # Validate JSON format
+          
+              # Validate the JSON format
               if ! jq empty reports/snyk_report.json; then
                 echo "Invalid JSON format in Snyk report."
                 exit 1
@@ -75,6 +67,7 @@ jobs:
               echo "Converting JSON report to CSV..."
               npx json2csv -i reports/snyk_report.json -o reports/snyk_report.csv || { echo "json2csv failed"; exit 1; }
               cat reports/snyk_report.csv
+          
           
       - name: Upload CSV report
         uses: actions/upload-artifact@v3
