@@ -28,10 +28,12 @@ jobs:
         run: sf plugins --core
       - name: sgd plugin installation  
         run: sf plugins install sfdx-git-delta
+      - name: sgd plugin installation sfdx
+        run: sfdx plugins:install sfdx-git-delta
       - name: Identify Changed Files
         id: delta_changes
         run: |
-          sfdx sgd:source:delta --to "HEAD" --from "HEAD^" > changed_files.txt
+          sfdx sgd:source:delta --to "HEAD" --from "HEAD~1" > changed_files.txt
           if [ ! -s changed_files.txt ]; then
             echo "No files changed, skipping delta scan."
             exit 0
