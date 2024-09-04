@@ -1,4 +1,4 @@
-name: Delta Report
+name: Vulnerability Report
 
 on:
   push:
@@ -7,20 +7,25 @@ on:
       - "**"
 
 jobs:
-  generate_report:
+  vulnerability_scan:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20.x  # Use the appropriate Node.js version for your project
+
+      - name: Install dependencies
+        run: npm install
+
       - name: Get changed files
         id: get-changes
         run: |
-          # Fetch all commits to ensure we can reference HEAD~1
           git fetch --unshallow || true
-          
-          # Check if there is more than one commit
           if [ "$(git rev-list --count HEAD)" -gt "1" ]; then
             git diff --name-only HEAD~1 HEAD > changed_files.txt
           else
@@ -28,16 +33,23 @@ jobs:
           fi
           cat changed_files.txt
 
-      - name: Generate report
-        id: generate_report
+      - name: Create a list of files to audit
+        id: prepare_audit_list
+        run: |
+          grep 'package.json$' changed_files.txt > files_to_audit.txt
+          cat files_to_audit.txt
+
+      - name: Run npm audit on changed files
+        id: run_audit
         run: |
           mkdir -p reports
-          echo "## Delta Report" > reports/delta_report.md
-          echo "The following files were changed in this commit:" >> reports/delta_report.md
-          cat changed_files.txt >> reports/delta_report.md
+          npm audit --json > reports/npm_audit_report.json
+          # Convert JSON report to CSV
+          npx json2csv -i reports/npm_audit_report.json -o reports/npm_audit_report.csv
+          cat reports/npm_audit_report.csv
 
-      - name: Upload report
+      - name: Upload CSV report
         uses: actions/upload-artifact@v3
         with:
-          name: delta-report
-          path: reports/delta_report.md
+          name: vulnerability-report
+          path: reports/npm_audit_report.csv
