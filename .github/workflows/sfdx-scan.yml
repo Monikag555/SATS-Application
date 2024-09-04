@@ -76,7 +76,7 @@ jobs:
         run: sudo apt-get install -y jq
       - name: Upload Overall CSV Report to Salesforce
         run: |
-          contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
+          response=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
             -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d '{
@@ -84,9 +84,9 @@ jobs:
               "PathOnClient": "scanner-report.csv",
               "VersionData": "'"$(cat encoded_report.txt)"'"
             }')
-          echo "Response: $contentDocumentResponse"
+          echo "Overall Report Response: $response"
           
-          contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
+          contentVersionId=$(echo $response | jq -r '.id // empty')
           if [ -z "$contentVersionId" ]; then
             echo "Error: Failed to upload file. No ContentVersionId found."
             exit 1
@@ -109,7 +109,7 @@ jobs:
       - name: Upload Delta Changes CSV Report to Salesforce
         if: steps.encode_files.outputs.encoded_delta_report != ''
         run: |
-          contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
+          response=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
             -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d '{
@@ -117,9 +117,9 @@ jobs:
               "PathOnClient": "delta-changes-report.csv",
               "VersionData": "'"$(cat encoded_delta_report.txt)"'"
             }')
-          echo "Response: $contentDocumentResponse"
+          echo "Delta Report Response: $response"
           
-          contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
+          contentVersionId=$(echo $response | jq -r '.id // empty')
           if [ -z "$contentVersionId" ]; then
             echo "Error: Failed to upload file. No ContentVersionId found."
             exit 1
