@@ -44,10 +44,11 @@ jobs:
             echo "No previous commit to compare to." > changed_files.txt
           fi
           cat changed_files.txt
+
       - name: Run SFDX Scanner on Changed Files
         if: success()
         run: |
-          files=$(cat changed_files.txt | grep -E '\.cls$|\.lwc$')
+          files=$(cat changed_files.txt | grep -E '\.cls$|\.lwc$' || true)
           if [ -n "$files" ]; then
             sf scanner:run --target "$files" --format "csv" --outfile "scanner-report.csv"
           else
