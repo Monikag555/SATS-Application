@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - main  # Change to the branch you want to monitor
-
       - "**"
 
 jobs:
@@ -18,7 +17,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 20.x  # Use the appropriate Node.js version for your project
+          node-version: 20.x
 
       - name: Install dependencies
         run: npm install
@@ -46,15 +45,22 @@ jobs:
       - name: Install Snyk
         run: npm install -g snyk
 
+      - name: Debug Environment
+        run: |
+          echo "Checking environment..."
+          pwd
+          ls -la
+          df -h
+          echo "Checking directory creation..."
+          mkdir -p reports || echo "Failed to create reports directory"
+          echo "Directory created successfully."
+
       - name: Run Snyk and generate report
         id: run_snyk
         run: |
-          echo "Creating directory for reports..."
-          mkdir -p reports || echo "Failed to create reports directory"
-          echo "Directory created successfully."
-          
-          snyk test --json > reports/snyk_report.json
-          npx json2csv -i reports/snyk_report.json -o reports/snyk_report.csv || true
+          set -e  # Exit on first error
+          snyk test --json > reports/snyk_report.json || { echo "Snyk test failed"; exit 1; }
+          npx json2csv -i reports/snyk_report.json -o reports/snyk_report.csv || { echo "json2csv failed"; exit 1; }
           cat reports/snyk_report.csv
 
       - name: Upload CSV report
