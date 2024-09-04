@@ -36,20 +36,27 @@ jobs:
       - name: Create a list of files to audit
         id: prepare_audit_list
         run: |
-          grep 'package.json$' changed_files.txt > files_to_audit.txt
+          # Ensure files_to_audit.txt is created, even if no matches are found
+          grep 'package.json$' changed_files.txt > files_to_audit.txt || true
+          if [ ! -s files_to_audit.txt ]; then
+            echo "No package.json files changed." > files_to_audit.txt
+          fi
           cat files_to_audit.txt
 
-      - name: Run npm audit on changed files
-        id: run_audit
+      - name: Install Snyk
+        run: npm install -g snyk
+
+      - name: Run Snyk and generate report
+        id: run_snyk
         run: |
           mkdir -p reports
-          npm audit --json > reports/npm_audit_report.json
-          # Convert JSON report to CSV
-          npx json2csv -i reports/npm_audit_report.json -o reports/npm_audit_report.csv
-          cat reports/npm_audit_report.csv
+          snyk test --json > reports/snyk_report.json
+          # Convert JSON report to CSV (using a custom script or tool)
+          npx json2csv -i reports/snyk_report.json -o reports/snyk_report.csv || true
+          cat reports/snyk_report.csv
 
       - name: Upload CSV report
         uses: actions/upload-artifact@v3
         with:
           name: vulnerability-report
-          path: reports/npm_audit_report.csv
+          path: reports/snyk_report.csv
