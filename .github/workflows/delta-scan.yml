@@ -1,80 +1,104 @@
-name: Vulnerability Report
+name: SFDX Code Scan
 
 on:
   push:
     branches:
-      - main  # Change to the branch you want to monitor
-      - "**"
+      - main
+      - '**'
 
 jobs:
-  vulnerability_scan:
+  installcli:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
 
-      - name: Set up Node.js
+      - name: Use Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20.x
 
-      - name: Install dependencies
-        run: npm install
+      - name: Install CLI
+        run: npm install @salesforce/cli --global
+
+      - name: Install Scanner Plugin
+        run: sf plugins install @salesforce/sfdx-scanner
+
+      - name: Verify SFDX CLI Installation
+        run: sf --version
+
+      - name: Verify SFDX Scanner Plugin Installation
+        run: sf plugins --core
 
       - name: Get changed files
         id: get-changes
         run: |
+          # Fetch all commits to ensure we can reference HEAD~1
           git fetch --unshallow || true
+          
+          # Check if there is more than one commit
           if [ "$(git rev-list --count HEAD)" -gt "1" ]; then
             git diff --name-only HEAD~1 HEAD > changed_files.txt
           else
             echo "No previous commit to compare to." > changed_files.txt
           fi
           cat changed_files.txt
-
-      - name: Create a list of files to audit
-        id: prepare_audit_list
+      - name: Run SFDX Scanner on Changed Files
+        if: success()
         run: |
-          grep 'package.json$' changed_files.txt > files_to_audit.txt || true
-          if [ ! -s files_to_audit.txt ]; then
-            echo "No package.json files changed." > files_to_audit.txt
-          fi
-          cat files_to_audit.txt
-
-      - name: Install Snyk
-        run: npm install -g snyk
-
-      - name: Run Snyk and generate report
-        id: run_snyk
-        run: |
-          mkdir -p reports || { echo "Failed to create reports directory"; exit 1; }
-          snyk test --json > reports/snyk_report.json 2>&1 || { echo "Snyk test failed, but continuing"; }
-          
-          # Output the content of the report for debugging
-          cat reports/snyk_report.json || { echo "Failed to output Snyk report."; exit 1; }
-      
-          # Check if the JSON report file exists and is not empty
-          if [ ! -s reports/snyk_report.json ]; then
-            echo "Snyk report is empty or not generated. No vulnerabilities found or report generation failed."
-            echo "No vulnerabilities found" > reports/snyk_report.csv
+          files=$(cat changed_files.txt | grep -E '\.cls$|\.lwc$')
+          if [ -n "$files" ]; then
+            sf scanner:run --target "$files" --format "csv" --outfile "scanner-report.csv"
           else
-            # Validate the JSON format
-            if ! jq empty reports/snyk_report.json; then
-              echo "Invalid JSON format in Snyk report."
-              exit 1
-            fi
-      
-            # Convert JSON to CSV
-            echo "Converting JSON report to CSV..."
-            npx json2csv -i reports/snyk_report.json -o reports/snyk_report.csv || { echo "json2csv failed"; exit 1; }
+            echo "No relevant files changed."
+            touch scanner-report.csv
           fi
-      
-          cat reports/snyk_report.csv
-      
+        env:
+          SF_LAZY_LOAD_MODULES: 'true'
+          SF_AUTOUPDATE_DISABLE: 'true'
+          SF_DISABLE_AUTOUPDATE: 'true'
+
+      - name: Encode CSV file to Base64
+        if: success()
+        id: encode_file
+        run: |
+          base64 scanner-report.csv | tr -d '\n' > encoded_report.txt
+
+      - name: Install jq
+        if: success()
+        run: sudo apt-get install -y jq
+
+      - name: Upload CSV Report to Salesforce
+        if: success() && (steps.encode_file.outputs.encoded_file != '')
+        run: |
+          contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
+            -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "Title": "Scanner Report",
+              "PathOnClient": "scanner-report.csv",
+              "VersionData": "'"$(cat encoded_report.txt)"'"
+            }')
+          echo "Response: $contentDocumentResponse"
           
-      - name: Upload CSV report
-        uses: actions/upload-artifact@v3
-        with:
-          name: vulnerability-report
-          path: reports/snyk_report.csv
+          contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
+          if [ -z "$contentVersionId" ]; then
+            echo "Error: Failed to upload file. No ContentVersionId found."
+            exit 1
+          fi
+          echo "ContentVersionId: $contentVersionId"
+          
+          contentDocumentResponse=$(curl -X GET https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/$contentVersionId \
+            -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}")
+          echo "ContentDocument Response: $contentDocumentResponse"
+          
+          contentDocumentId=$(echo $contentDocumentResponse | jq -r '.ContentDocumentId // empty')
+          if [ -z "$contentDocumentId" ]; then
+            echo "Error: Failed to retrieve ContentDocumentId. No ContentDocumentId found."
+            exit 1
+          fi
+          echo "ContentDocumentId: $contentDocumentId"
+        env:
+          SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
+        shell: bash
