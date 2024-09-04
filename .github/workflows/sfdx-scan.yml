@@ -31,7 +31,7 @@ jobs:
       - name: Identify Changed Files
         id: delta_changes
         run: |
-          git diff --name-only HEAD^ HEAD > changed_files.txt
+          sfdx sgd:source:delta --to "HEAD" --from "HEAD^" > changed_files.txt
           if [ ! -s changed_files.txt ]; then
             echo "No files changed, skipping delta scan."
             exit 0
