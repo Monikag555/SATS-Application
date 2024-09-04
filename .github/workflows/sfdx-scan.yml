@@ -56,6 +56,15 @@ jobs:
           SF_LAZY_LOAD_MODULES: 'true'
           SF_AUTOUPDATE_DISABLE: 'true'
           SF_DISABLE_AUTOUPDATE: 'true'
+      - name: Check Delta Changes Report
+        run: |
+          if [ -f delta-changes-report.csv ]; then
+            echo "Delta changes report created successfully."
+            ls -l delta-changes-report.csv
+          else
+            echo "Error: Delta changes report not created."
+            exit 1
+          fi
       - name: Encode CSV files to Base64
         id: encode_files
         run: |

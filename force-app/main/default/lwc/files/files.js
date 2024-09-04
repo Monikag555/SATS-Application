@@ -61,8 +61,7 @@ export default class CsvTable extends LightningElement {
  
     engineOptions = [
         { label: 'PMD', value: 'PMD' },
-        { label: 'Design', value: 'Design' },
-        // Add other options as needed
+        { label: 'Design', value: 'Design' }
     ];
  
     ruleOptions = [
