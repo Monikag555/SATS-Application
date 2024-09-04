@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main  # Change to the branch you want to monitor
+
       - "**"
 
 jobs:
@@ -36,7 +37,6 @@ jobs:
       - name: Create a list of files to audit
         id: prepare_audit_list
         run: |
-          # Ensure files_to_audit.txt is created, even if no matches are found
           grep 'package.json$' changed_files.txt > files_to_audit.txt || true
           if [ ! -s files_to_audit.txt ]; then
             echo "No package.json files changed." > files_to_audit.txt
@@ -49,9 +49,11 @@ jobs:
       - name: Run Snyk and generate report
         id: run_snyk
         run: |
-          mkdir -p reports
+          echo "Creating directory for reports..."
+          mkdir -p reports || echo "Failed to create reports directory"
+          echo "Directory created successfully."
+          
           snyk test --json > reports/snyk_report.json
-          # Convert JSON report to CSV (using a custom script or tool)
           npx json2csv -i reports/snyk_report.json -o reports/snyk_report.csv || true
           cat reports/snyk_report.csv
 
