@@ -1,13 +1,15 @@
 name: SFDX Code Scan Delta
 
 on:
-  push:
-    branches:
-      - feature_2
+  workflow_run:
+    workflows: ["Conditional Scan"]
+    types:
+      - completed
 
 jobs:
   installcli:
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v3
         with:
@@ -29,6 +31,19 @@ jobs:
 
       - name: Verify SFDX Scanner Plugin Installation
         run: sf plugins --core
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: delta-result
+
+      - name: Read delta result
+        id: read-delta
+        run: |
+          delta=$(cat delta.txt)
+          if [ "$delta" != "delta=true" ]; then
+            echo "No delta changes detected. Exiting."
+            exit 0
+          fi
 
       - name: Get changed files
         id: get-changes
@@ -83,7 +98,7 @@ jobs:
               -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
               -H "Content-Type: application/json" \
               -d '{
-                "Title": "Scanner Report",
+                "Title": "Scanner Report Delta",
                 "PathOnClient": "scanner-report.csv",
                 "VersionData": "'"$(cat encoded_report.txt)"'"
               }')
