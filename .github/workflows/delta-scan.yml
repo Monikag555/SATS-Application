@@ -1,4 +1,4 @@
-name: SFDX Code Scan
+name: SFDX Code Scan Delta
 
 on:
   push:
