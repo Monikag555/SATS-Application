@@ -1,6 +1,5 @@
 name: SFDX Code Scan
 
-#sfdx
 on:
   push:
     branches:
@@ -28,7 +27,7 @@ jobs:
         run: sf plugins --core
       - name: Run SFDX Scanner
         run: |
-          sf scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --format "csv" --outfile "scanner-report_Feature1.csv"
+          sf scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv"
         env:
           SF_LAZY_LOAD_MODULES: 'true'
           SF_AUTOUPDATE_DISABLE: 'true'
@@ -41,16 +40,26 @@ jobs:
         run: sudo apt-get install -y jq
       - name: Upload CSV Report to Salesforce
         run: |
+          # Prepare payload
+          payload=$(jq -n \
+            --arg title "Scanner Report" \
+            --arg path "scanner-report.csv" \
+            --arg versionData "$(cat encoded_report.txt)" \
+            '{
+              Title: $title,
+              PathOnClient: $path,
+              VersionData: $versionData
+            }')
+
+          # Send request to Salesforce
           contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
             -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
             -H "Content-Type: application/json" \
-            -d '{
-              "Title": "Scanner Report_Feature1",
-              "PathOnClient": "scanner-report.csv",
-              "VersionData": "'"$(cat encoded_report.txt)"'"
-            }')
+            -d "$payload")
+          
           echo "Response: $contentDocumentResponse"
           
+          # Extract ContentVersionId
           contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
           if [ -z "$contentVersionId" ]; then
             echo "Error: Failed to upload file. No ContentVersionId found."
@@ -58,6 +67,7 @@ jobs:
           fi
           echo "ContentVersionId: $contentVersionId"
           
+          # Retrieve ContentDocumentId
           contentDocumentResponse=$(curl -X GET https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/$contentVersionId \
             -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}")
           echo "ContentDocument Response: $contentDocumentResponse"
