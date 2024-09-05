@@ -50,16 +50,13 @@ jobs:
 
       - name: Upload CSV Report to Salesforce
         env:
-          SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }} # Ensuring the secret is available as an environment variable
+          SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}  # Ensure the token is passed here
         run: |
-          # Make sure the SF_ACCESS_TOKEN is not empty
+          # Ensure SF_ACCESS_TOKEN is available
           if [ -z "${SF_ACCESS_TOKEN}" ]; then
             echo "Error: SF_ACCESS_TOKEN is not available."
             exit 1
           fi
-
-          # Log the SF_ACCESS_TOKEN for debugging purposes (optional, make sure not to expose sensitive information)
-          echo "Using SF_ACCESS_TOKEN: ${SF_ACCESS_TOKEN}"
 
           # Make the POST request to upload the ContentVersion
           contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
@@ -74,14 +71,7 @@ jobs:
           # Log the full response for debugging
           echo "Full Response: $contentDocumentResponse"
 
-          # Check if the response is an array or object
-          if [[ $contentDocumentResponse == \[*\] ]]; then
-            echo "Error: Received an array, expected an object. Here's the response:"
-            echo "$contentDocumentResponse"
-            exit 1
-          fi
-
-          # Extract contentVersionId correctly from the response
+          # Extract contentVersionId from the response
           contentVersionId=$(echo $contentDocumentResponse | jq -r '.id')
           if [ -z "$contentVersionId" ]; then
             echo "Error: Failed to upload file. No ContentVersionId found."
@@ -96,7 +86,7 @@ jobs:
           # Log full response for ContentDocumentId
           echo "ContentDocument Response: $contentDocumentResponse"
 
-          # Extract ContentDocumentId correctly
+          # Extract ContentDocumentId
           contentDocumentId=$(echo $contentDocumentResponse | jq -r '.ContentDocumentId // empty')
           if [ -z "$contentDocumentId" ]; then
             echo "Error: Failed to retrieve ContentDocumentId. No ContentDocumentId found."
