@@ -50,7 +50,7 @@ jobs:
         run: |
           files=$(cat changed_files.txt | grep -E '\.cls$|\.lwc$' || true)
           if [ -n "$files" ]; then
-            sf scanner:run --target "$files" --format "csv" --outfile "scanner-report.csv"
+            sf scanner:run --target "$files" --format "csv" --outfile "scanner-report_Feature1.csv"
           else
             echo "No relevant files changed."
             touch scanner-report.csv
@@ -78,7 +78,7 @@ jobs:
               -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
               -H "Content-Type: application/json" \
               -d '{
-                "Title": "Scanner Report",
+                "Title": "Scanner Report Feature1",
                 "PathOnClient": "scanner-report.csv",
                 "VersionData": "'"$(cat encoded_report.txt)"'"
               }')
