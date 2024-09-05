@@ -1,6 +1,5 @@
 name: SFDX Code Scan Overall
   export SF_ACCESS_TOKEN="$SF_ACCESS_TOKEN"
-  echo "SF_ACCESS_TOKEN"
  
 
 on:
@@ -50,6 +49,8 @@ jobs:
 
       - name: Install jq
         run: sudo apt-get install -y jq
+
+              echo "SF_ACCESS_TOKEN"
 
       - name: Upload CSV Report to Salesforce
         run: |
