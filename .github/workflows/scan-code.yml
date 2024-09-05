@@ -1,5 +1,6 @@
 name: SFDX Code Scan Overall
 
+#sfdx
 on:
   workflow_call:
     inputs:
@@ -45,7 +46,7 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
             -H "Content-Type: application/json" \
             -d '{
-              "Title": "Scanner Report Overall",
+              "Title": "Scanner Report",
               "PathOnClient": "scanner-report.csv",
               "VersionData": "'"$(cat encoded_report.txt)"'"
             }')
