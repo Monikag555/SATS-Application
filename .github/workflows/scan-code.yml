@@ -3,8 +3,7 @@ name: SFDX Code Scan
 on:
   push:
     branches:
-      - main
-      - '**'
+      - feature_1
 
 jobs:
   installcli:
