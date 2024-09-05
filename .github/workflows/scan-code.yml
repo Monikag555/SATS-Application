@@ -1,4 +1,7 @@
 name: SFDX Code Scan Overall
+  export SF_ACCESS_TOKEN="$SF_ACCESS_TOKEN"
+  echo "SF_ACCESS_TOKEN"
+ 
 
 on:
   workflow_call:
@@ -50,6 +53,7 @@ jobs:
 
       - name: Upload CSV Report to Salesforce
         run: |
+
           # Make sure the SF_ACCESS_TOKEN is not empty
           if [ -z "${{ secrets.SF_ACCESS_TOKEN }}" ]; then
             echo "Error: SF_ACCESS_TOKEN is not available."
