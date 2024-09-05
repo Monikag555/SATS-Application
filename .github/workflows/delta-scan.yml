@@ -67,19 +67,31 @@ jobs:
         if: success()
         run: sudo apt-get install -y jq
       - name: Upload CSV Report to Salesforce
-        if: success()
         run: |
+          # Check if encoded report file exists
           if [ -s encoded_report.txt ]; then
-            contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
-              -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
+            echo "Encoded report file found."
+      
+            # Assign GitHub secret (Salesforce token) to a local variable
+            SF_ACCESS_TOKEN_VAR=${{ secrets.SF_ACCESS_TOKEN }}
+      
+            # Optional: Debugging to check if the token has been set
+            echo "Token length: ${#SF_ACCESS_TOKEN_VAR}"
+      
+            # Make the API request using the token
+            contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v58.0/sobjects/ContentVersion/ \
+              -H "Authorization: Bearer $SF_ACCESS_TOKEN_VAR" \
               -H "Content-Type: application/json" \
               -d '{
-                "Title": "Scanner Report",
+                "Title": "Scanner Report Delta",
                 "PathOnClient": "scanner-report.csv",
                 "VersionData": "'"$(cat encoded_report.txt)"'"
               }')
+      
+            # Log the response
             echo "Response: $contentDocumentResponse"
             
+            # Parse the response to get contentVersionId using jq
             contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
             if [ -z "$contentVersionId" ]; then
               echo "Error: Failed to upload file. No ContentVersionId found."
@@ -87,10 +99,14 @@ jobs:
             fi
             echo "ContentVersionId: $contentVersionId"
             
-            contentDocumentResponse=$(curl -X GET https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/$contentVersionId \
-              -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}")
+            # Fetch additional data using the contentVersionId
+            contentDocumentResponse=$(curl -X GET https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v58.0/sobjects/ContentVersion/$contentVersionId \
+              -H "Authorization: Bearer $SF_ACCESS_TOKEN_VAR")
+            
+            # Log the contentDocumentResponse
             echo "ContentDocument Response: $contentDocumentResponse"
             
+            # Parse the response to get contentDocumentId
             contentDocumentId=$(echo $contentDocumentResponse | jq -r '.ContentDocumentId // empty')
             if [ -z "$contentDocumentId" ]; then
               echo "Error: Failed to retrieve ContentDocumentId. No ContentDocumentId found."
@@ -101,5 +117,6 @@ jobs:
             echo "No scanner report generated, skipping upload."
           fi
         env:
-          SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
-        shell: bash
+          # Pass SF_ACCESS_TOKEN as an environment variable
+          SF_ACCESS_TOKEN_VAR: ${{ secrets.SF_ACCESS_TOKEN }}
+      
