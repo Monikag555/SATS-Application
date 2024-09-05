@@ -69,18 +69,15 @@ jobs:
           if [ -s encoded_report.txt ]; then
             echo "Encoded report file found."
             
-            # Debugging: Print the first few characters of the token (do not print the full token in logs)
-            echo "Token starts with: ${SF_ACCESS_TOKEN:0:10}"
-      
-            # Perform the request
             contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
-            -H "Authorization: Bearer 00DdM000001kAVH!AQEAQLc4VXktppIvld.maR9sE1AywyQMxPc374lyWRT9puZQbPa13GFrk17qMU6U.9wYDZfiXa0JjlNGWuPU.s8Q8bBFdwTN" \
-            -H "Content-Type: application/json" \
-            -d '{
-           "Title": "Scanner Report Delta",
-            "PathOnClient": "scanner-report.csv",
-            "VersionData": "<base64_encoded_report>"
-            }')
+              -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
+              -H "Content-Type: application/json" \
+              -d '{
+                "Title": "Scanner Report Delta",
+                "PathOnClient": "scanner-report.csv",
+                "VersionData": "'"$(cat encoded_report.txt)"'"
+              }')
+      
             echo "Response: $contentDocumentResponse"
             
             contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
@@ -92,6 +89,7 @@ jobs:
             
             contentDocumentResponse=$(curl -X GET https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/$contentVersionId \
               -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}")
+      
             echo "ContentDocument Response: $contentDocumentResponse"
             
             contentDocumentId=$(echo $contentDocumentResponse | jq -r '.ContentDocumentId // empty')
@@ -106,3 +104,4 @@ jobs:
         env:
           SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
         shell: bash
+      
