@@ -178,6 +178,8 @@ public with sharing class HireCount {
         public PlacementWrapper(String selectedValue, Integer count) {
             this.selectedValue = selectedValue;
             this.count = count;
+            system.debug('Placement Wrapper class');
+            //changed in debug statement
         }
     }
 }
