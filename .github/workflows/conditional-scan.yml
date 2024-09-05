@@ -6,37 +6,38 @@ on:
       - feature_2
 
 jobs:
-  check-changes:
+  check-delta:
     runs-on: ubuntu-latest
+    outputs:
+      delta: ${{ steps.check.outputs.delta }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
-      - name: Get changed files
-        id: get-changes
-        run: |
-          git fetch --unshallow || true
-          if [ "$(git rev-list --count HEAD)" -gt "1" ]; then
-            echo "Fetching changed files between HEAD~1 and HEAD"
-            git diff --name-only HEAD~1 HEAD > changed_files.txt
-          else
-            echo "No previous commit to compare to." > changed_files.txt
-          fi
-          cat changed_files.txt
+      - name: Set up Git
+        run: git fetch --unshallow || true
 
-      - name: Determine if delta changes exist
-        id: check-delta
+      - name: Check for Delta Changes
+        id: check
         run: |
-          files=$(cat changed_files.txt | grep -E '\.cls$|\.lwc$' || true)
-          if [ -n "$files" ]; then
-            echo "delta=true" > delta.txt
+          git diff --name-only HEAD~1 HEAD > changed_files.txt
+          if grep -E '\.cls$|\.lwc$' changed_files.txt; then
+            echo "::set-output name=delta::true"
           else
-            echo "delta=false" > delta.txt
+            echo "::set-output name=delta::false"
           fi
 
-      - name: Upload delta result as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: delta-result
-          path: delta.txt
+  trigger-workflow:
+    needs: check-delta
+    if: ${{ needs.check-delta.outputs.delta == 'true' }}
+    uses: ./.github/workflows/delta-scan.yml
+    with:
+      ref: ${{ github.ref }}
+
+  trigger-workflow-overall:
+    needs: check-delta
+    if: ${{ needs.check-delta.outputs.delta == 'false' }}
+    uses: ./.github/workflows/scan-code.yml
+    with:
+      ref: ${{ github.ref }}

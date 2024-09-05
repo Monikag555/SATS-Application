@@ -1,64 +1,41 @@
 name: SFDX Code Scan Delta
 
 on:
-  workflow_run:
-    workflows: ["Conditional Scan"]
-    types:
-      - completed
+  workflow_call:
+    inputs:
+      ref:
+        required: true
+        type: string
 
 jobs:
   installcli:
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
           node-version: 20.x
-
       - name: Install CLI
         run: npm install @salesforce/cli --global
-
       - name: Install Scanner Plugin
         run: sf plugins install @salesforce/sfdx-scanner
-
       - name: Verify SFDX CLI Installation
         run: sf --version
-
       - name: Verify SFDX Scanner Plugin Installation
         run: sf plugins --core
-
-      - uses: actions/download-artifact@v3
-        with:
-          name: delta-result
-
-      - name: Read delta result
-        id: read-delta
-        run: |
-          delta=$(cat delta.txt)
-          if [ "$delta" != "delta=true" ]; then
-            echo "No delta changes detected. Exiting."
-            exit 0
-          fi
-
       - name: Get changed files
         id: get-changes
         run: |
           git fetch --unshallow || true
-          
-          # Check if there is more than one commit
           if [ "$(git rev-list --count HEAD)" -gt "1" ]; then
-            echo "Fetching changed files between HEAD~1 and HEAD"
             git diff --name-only HEAD~1 HEAD > changed_files.txt
           else
             echo "No previous commit to compare to." > changed_files.txt
           fi
           cat changed_files.txt
-
       - name: Run SFDX Scanner on Changed Files
         if: success()
         run: |
@@ -74,7 +51,6 @@ jobs:
           SF_LAZY_LOAD_MODULES: 'true'
           SF_AUTOUPDATE_DISABLE: 'true'
           SF_DISABLE_AUTOUPDATE: 'true'
-
       - name: Encode CSV file to Base64
         if: success()
         id: encode_file
@@ -85,11 +61,9 @@ jobs:
             echo "Scanner report CSV file not found."
             exit 1
           fi
-
       - name: Install jq
         if: success()
         run: sudo apt-get install -y jq
-
       - name: Upload CSV Report to Salesforce
         if: success()
         run: |
