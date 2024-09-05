@@ -42,32 +42,40 @@ jobs:
       - name: Upload CSV Report to Salesforce
         run: |
           contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
-            -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "Title": "Scanner Report",
-              "PathOnClient": "scanner-report.csv",
-              "VersionData": "'"$(cat encoded_report.txt)"'"
-            }')
-          echo "Response: $contentDocumentResponse"
-          
-          contentVersionId=$(echo $contentDocumentResponse | jq '.[] | .id')
+          -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          -d '{
+          "Title": "Scanner Report",
+          "PathOnClient": "scanner-report.csv",
+          "VersionData": "'"$(cat encoded_report.txt)"'"
+          }')
+
+          # Log full response
+          echo "Full Response: $contentDocumentResponse"
+
+          # Extract contentVersionId correctly
+          contentVersionId=$(echo $contentDocumentResponse | jq -r '.id')
           if [ -z "$contentVersionId" ]; then
             echo "Error: Failed to upload file. No ContentVersionId found."
             exit 1
           fi
-          echo "ContentVersionId: $contentVersionId"
-          
+            echo "ContentVersionId: $contentVersionId"
+
+          # Fetch the ContentDocumentId based on the ContentVersionId
           contentDocumentResponse=$(curl -X GET https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/$contentVersionId \
-            -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}")
+          -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}")
+
+          # Log full response again
           echo "ContentDocument Response: $contentDocumentResponse"
-          
+
+          # Extract ContentDocumentId correctly
           contentDocumentId=$(echo $contentDocumentResponse | jq -r '.ContentDocumentId // empty')
           if [ -z "$contentDocumentId" ]; then
             echo "Error: Failed to retrieve ContentDocumentId. No ContentDocumentId found."
             exit 1
           fi
           echo "ContentDocumentId: $contentDocumentId"
+
         env:
           SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
         shell: bash
