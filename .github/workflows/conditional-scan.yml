@@ -1,5 +1,6 @@
 name: Conditional Scan
 
+#condition
 on:
   push:
     branches:
