@@ -41,7 +41,7 @@ jobs:
         run: sudo apt-get install -y jq
       - name: Upload CSV Report to Salesforce
         run: |
-          contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
+          contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v57.0/sobjects/ContentVersion/ \
           -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
           -H "Content-Type: application/json" \
           -d '{
@@ -49,6 +49,8 @@ jobs:
           "PathOnClient": "scanner-report.csv",
           "VersionData": "'"$(cat encoded_report.txt)"'"
           }')
+
+          echo "SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
 
           # Log full response
           echo "Full Response: $contentDocumentResponse"
