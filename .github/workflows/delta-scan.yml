@@ -3,7 +3,7 @@ name: SFDX Code Scan Delta
 on:
   push:
     branches:
-      - feature_1
+      - feature_2
 
 jobs:
   installcli:
