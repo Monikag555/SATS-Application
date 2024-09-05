@@ -65,9 +65,14 @@ jobs:
         if: success()
         run: sudo apt-get install -y jq
       - name: Upload CSV Report to Salesforce
-        if: success()
         run: |
           if [ -s encoded_report.txt ]; then
+            echo "Encoded report file found."
+            
+            # Debugging: Print the first few characters of the token (do not print the full token in logs)
+            echo "Token starts with: ${SF_ACCESS_TOKEN:0:10}"
+      
+            # Perform the request
             contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
               -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
               -H "Content-Type: application/json" \
