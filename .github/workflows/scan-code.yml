@@ -50,6 +50,12 @@ jobs:
 
       - name: Upload CSV Report to Salesforce
         run: |
+          # Make sure the SF_ACCESS_TOKEN is not empty
+          if [ -z "${{ secrets.SF_ACCESS_TOKEN }}" ]; then
+            echo "Error: SF_ACCESS_TOKEN is not available."
+            exit 1
+          fi
+
           # Make the POST request to upload the ContentVersion
           contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
           -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
@@ -60,7 +66,7 @@ jobs:
             \"VersionData\": \"$(cat encoded_report.txt)\"
           }")
 
-          # Log full response for debugging
+          # Log the full response for debugging
           echo "Full Response: $contentDocumentResponse"
 
           # Check if the response is an array or object
