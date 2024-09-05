@@ -50,6 +50,7 @@ jobs:
 
       - name: Upload CSV Report to Salesforce
         run: |
+          # Make the POST request to upload the ContentVersion
           contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
           -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
           -H "Content-Type: application/json" \
@@ -59,10 +60,17 @@ jobs:
             \"VersionData\": \"$(cat encoded_report.txt)\"
           }")
 
-          # Log full response
+          # Log full response for debugging
           echo "Full Response: $contentDocumentResponse"
 
-          # Extract contentVersionId correctly
+          # Check if the response is an array or object
+          if [[ $contentDocumentResponse == \[*\] ]]; then
+            echo "Error: Received an array, expected an object. Here's the response:"
+            echo "$contentDocumentResponse"
+            exit 1
+          fi
+
+          # Extract contentVersionId correctly from the response
           contentVersionId=$(echo $contentDocumentResponse | jq -r '.id')
           if [ -z "$contentVersionId" ]; then
             echo "Error: Failed to upload file. No ContentVersionId found."
@@ -74,7 +82,7 @@ jobs:
           contentDocumentResponse=$(curl -X GET https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/$contentVersionId \
           -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}")
 
-          # Log full response again
+          # Log full response for ContentDocumentId
           echo "ContentDocument Response: $contentDocumentResponse"
 
           # Extract ContentDocumentId correctly
