@@ -77,7 +77,7 @@ jobs:
                 "PathOnClient": "scanner-report.csv",
                 "VersionData": "'"$(cat encoded_report.txt)"'"
               }')
-      
+        
             echo "Response: $contentDocumentResponse"
             
             contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
@@ -89,7 +89,7 @@ jobs:
             
             contentDocumentResponse=$(curl -X GET https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/$contentVersionId \
               -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}")
-      
+        
             echo "ContentDocument Response: $contentDocumentResponse"
             
             contentDocumentId=$(echo $contentDocumentResponse | jq -r '.ContentDocumentId // empty')
