@@ -1,6 +1,5 @@
 name: SFDX Code Scan Overall
 
-#sfdx
 on:
   workflow_call:
     inputs:
