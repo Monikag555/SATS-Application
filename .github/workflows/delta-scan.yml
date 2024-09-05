@@ -1,7 +1,5 @@
 name: SFDX Code Scan Delta
 
-#delta
-
 on:
   workflow_call:
     inputs:
@@ -47,6 +45,7 @@ jobs:
             echo "No previous commit to compare to." > changed_files.txt
           fi
           cat changed_files.txt
+
       - name: Run SFDX Scanner on Changed Files
         if: success()
         run: |
@@ -61,54 +60,46 @@ jobs:
           SF_LAZY_LOAD_MODULES: 'true'
           SF_AUTOUPDATE_DISABLE: 'true'
           SF_DISABLE_AUTOUPDATE: 'true'
-          SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
-
-          echo "Lazy: SF_LAZY_LOAD_MODULES"
-          echo "Token: SF_ACCESS_TOKEN"
 
       - name: Encode CSV file to Base64
         if: success()
         id: encode_file
         run: |
           base64 scanner-report.csv | tr -d '\n' > encoded_report.txt
-      - name: Install jq
-        if: success()
-        run: sudo apt-get install -y jq
 
       - name: Upload CSV Report to Salesforce
         if: success()
         run: |
-          if [ -s encoded_report.txt ]; then
-            contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
-              -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              -d '{
-                "Title": "Scanner Report",
-                "PathOnClient": "scanner-report.csv",
-                "VersionData": "'"$(cat encoded_report.txt)"'"
-              }')
-            echo "contentDocument Response: $contentDocumentResponse"
-            
-            contentVersionId=$(echo $contentDocumentResponse | jq '.[] | .id')
-            if [ -z "$contentVersionId" ]; then
-              echo "Error: Failed to upload file. No ContentVersionId found."
-              exit 1
-            fi
-            echo "ContentVersionId: $contentVersionId"
-            
-            contentDocumentResponse=$(curl -X GET https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/$contentVersionId \
-              -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}")
-            echo "ContentDocument Response: $contentDocumentResponse"
-            
-            contentDocumentId=$(echo $contentDocumentResponse | jq -r '.ContentDocumentId // empty')
-            if [ -z "$contentDocumentId" ]; then
-              echo "Error: Failed to retrieve ContentDocumentId. No ContentDocumentId found."
-              exit 1
-            fi
-            echo "ContentDocumentId: $contentDocumentId"
-          else
-            echo "No scanner report generated, skipping upload."
+          # Read encoded report content
+          encoded_data=$(cat encoded_report.txt)
+          
+          # Prepare request payload
+          payload=$(cat <<EOF
+          {
+            "Title": "Scanner Report",
+            "PathOnClient": "scanner-report.csv",
+            "VersionData": "$encoded_data"
+          }
+        EOF
+          )
+
+          # Make the API request to upload the file
+          contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
+            -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "$payload")
+
+          # Log the full response
+          echo "contentDocument Response: $contentDocumentResponse"
+
+          # Extract ContentVersionId from the response
+          contentVersionId=$(echo $contentDocumentResponse | jq -r '.id')
+          if [ -z "$contentVersionId" ]; then
+            echo "Error: Failed to upload file. No ContentVersionId found."
+            exit 1
           fi
+          echo "ContentVersionId: $contentVersionId"
+
         env:
           SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
         shell: bash
