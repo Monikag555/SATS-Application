@@ -1,4 +1,6 @@
 name: SFDX Code Scan Overall
+  export SF_ACCESS_TOKEN="$SF_ACCESS_TOKEN"
+ 
 
 on:
   workflow_call:
@@ -39,45 +41,70 @@ jobs:
           SF_LAZY_LOAD_MODULES: 'true'
           SF_AUTOUPDATE_DISABLE: 'true'
           SF_DISABLE_AUTOUPDATE: 'true'
+          SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
+
+          echo "Lazy: SF_LAZY_LOAD_MODULES"
+          echo "Token: SF_ACCESS_TOKEN"
 
       - name: Encode CSV file to Base64
-        if: success()
         id: encode_file
         run: |
           base64 scanner-report.csv | tr -d '\n' > encoded_report.txt
 
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
       - name: Upload CSV Report to Salesforce
-        if: success()
         run: |
-          # Read encoded report content
-          encoded_data=$(cat encoded_report.txt)
-          
-          # Prepare request payload
-          payload=$(cat <<EOF
-          {
-            "Title": "Scanner Report",
-            "PathOnClient": "scanner-report.csv",
-            "VersionData": "$encoded_data"
-          }
-          EOF
-          )
 
-          # Make the API request to upload the file
-          contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
-            -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d "$payload")
+          # Make sure the SF_ACCESS_TOKEN is not empty
+          if [ -z "${{ secrets.SF_ACCESS_TOKEN }}" ]; then
+            echo "Error: SF_ACCESS_TOKEN is not available."
+            exit 1
+          fi
 
-          # Log the full response
-          echo "contentDocument Response: $contentDocumentResponse"
+          # Make the POST request to upload the ContentVersion
+          contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
+          -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
+          -H "Content-Type: application/json" \
+          -d "{
+            \"Title\": \"Scanner Report\",
+            \"PathOnClient\": \"scanner-report.csv\",
+            \"VersionData\": \"$(cat encoded_report.txt)\"
+          }")
 
-          # Extract ContentVersionId from the response
+          # Log the full response for debugging
+          echo "Full Response: $contentDocumentResponse"
+
+          # Check if the response is an array or object
+          if [[ $contentDocumentResponse == \[*\] ]]; then
+            echo "Error: Received an array, expected an object. Here's the response:"
+            echo "$contentDocumentResponse"
+            exit 1
+          fi
+
+          # Extract contentVersionId correctly from the response
           contentVersionId=$(echo $contentDocumentResponse | jq -r '.id')
           if [ -z "$contentVersionId" ]; then
             echo "Error: Failed to upload file. No ContentVersionId found."
             exit 1
           fi
           echo "ContentVersionId: $contentVersionId"
+
+          # Fetch the ContentDocumentId based on the ContentVersionId
+          contentDocumentResponse=$(curl -X GET https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/$contentVersionId \
+          -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}")
+
+          # Log full response for ContentDocumentId
+          echo "ContentDocument Response: $contentDocumentResponse"
+
+          # Extract ContentDocumentId correctly
+          contentDocumentId=$(echo $contentDocumentResponse | jq -r '.ContentDocumentId // empty')
+          if [ -z "$contentDocumentId" ]; then
+            echo "Error: Failed to retrieve ContentDocumentId. No ContentDocumentId found."
+            exit 1
+          fi
+          echo "ContentDocumentId: $contentDocumentId"
 
         env:
           SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
