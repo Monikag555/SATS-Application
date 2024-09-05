@@ -74,13 +74,13 @@ jobs:
       
             # Perform the request
             contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
-              -H "Authorization: Bearer ${{ secrets.SF_ACCESS_TOKEN }}" \
-              -H "Content-Type: application/json" \
-              -d '{
-                "Title": "Scanner Report Delta",
-                "PathOnClient": "scanner-report.csv",
-                "VersionData": "'"$(cat encoded_report.txt)"'"
-              }')
+            -H "Authorization: Bearer 00DdM000001kAVH!AQEAQLc4VXktppIvld.maR9sE1AywyQMxPc374lyWRT9puZQbPa13GFrk17qMU6U.9wYDZfiXa0JjlNGWuPU.s8Q8bBFdwTN" \
+            -H "Content-Type: application/json" \
+            -d '{
+           "Title": "Scanner Report Delta",
+            "PathOnClient": "scanner-report.csv",
+            "VersionData": "<base64_encoded_report>"
+            }')
             echo "Response: $contentDocumentResponse"
             
             contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
