@@ -85,7 +85,7 @@ jobs:
               }')
             echo "contentDocument Response: $contentDocumentResponse"
             
-            contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
+            contentVersionId=$(echo $contentDocumentResponse | jq -r '.id ')
             if [ -z "$contentVersionId" ]; then
               echo "Error: Failed to upload file. No ContentVersionId found."
               exit 1
