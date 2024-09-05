@@ -83,7 +83,7 @@ jobs:
                 "PathOnClient": "scanner-report.csv",
                 "VersionData": "'"$(cat encoded_report.txt)"'"
               }')
-            echo "Response: $contentDocumentResponse"
+            echo "contentDocument Response: $contentDocumentResponse"
             
             contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
             if [ -z "$contentVersionId" ]; then
