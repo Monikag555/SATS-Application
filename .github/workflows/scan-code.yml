@@ -5,6 +5,7 @@ on:
     branches:
       - feature_2
       - '**' #all branches
+  workflow_dispatch:
 
 jobs:
   installcli:
