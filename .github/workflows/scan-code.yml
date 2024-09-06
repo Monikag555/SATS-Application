@@ -52,6 +52,7 @@ jobs:
             sf scanner:run --target "$files" --format "csv" --outfile "scanner-report.csv" || { echo "Scanner run failed"; exit 1; }
           else
             echo "No relevant files changed. Skipping the scan."
+            sf scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv"
             exit 0
           fi
         env:
