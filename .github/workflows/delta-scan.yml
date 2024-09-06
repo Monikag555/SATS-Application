@@ -1,13 +1,10 @@
 name: SFDX Code Scan Delta
 
 #delta
-
 on:
-  workflow_call:
-    inputs:
-      ref:
-        required: true
-        type: string
+  push:
+    branches:
+      - feature_2
 
 jobs:
   installcli:
@@ -37,22 +34,24 @@ jobs:
       - name: Get changed files
         id: get-changes
         run: |
-          # Fetch all commits to ensure we can reference HEAD~1
           git fetch --unshallow || true
           
           # Check if there is more than one commit
           if [ "$(git rev-list --count HEAD)" -gt "1" ]; then
+            echo "Fetching changed files between HEAD~1 and HEAD"
             git diff --name-only HEAD~1 HEAD > changed_files.txt
           else
             echo "No previous commit to compare to." > changed_files.txt
           fi
           cat changed_files.txt
+
       - name: Run SFDX Scanner on Changed Files
         if: success()
         run: |
           files=$(cat changed_files.txt | grep -E '\.cls$|\.lwc$' || true)
+          echo "Files to scan: $files"
           if [ -n "$files" ]; then
-            sf scanner:run --target "$files" --format "csv" --outfile "scanner-report.csv"
+            sf scanner:run --target "$files" --format "csv" --outfile "scanner-report.csv" || { echo "Scanner run failed"; exit 1; }
           else
             echo "No relevant files changed."
             touch scanner-report.csv
@@ -61,16 +60,18 @@ jobs:
           SF_LAZY_LOAD_MODULES: 'true'
           SF_AUTOUPDATE_DISABLE: 'true'
           SF_DISABLE_AUTOUPDATE: 'true'
-          SF_ACCESS_TOKEN: ${{ secrets.SF_ACCESS_TOKEN }}
-
-          echo "Lazy: SF_LAZY_LOAD_MODULES"
-          echo "Token: SF_ACCESS_TOKEN"
 
       - name: Encode CSV file to Base64
         if: success()
         id: encode_file
         run: |
-          base64 scanner-report.csv | tr -d '\n' > encoded_report.txt
+          if [ -f scanner-report.csv ]; then
+            base64 scanner-report.csv | tr -d '\n' > encoded_report.txt
+          else
+            echo "Scanner report CSV file not found."
+            exit 1
+          fi
+
       - name: Install jq
         if: success()
         run: sudo apt-get install -y jq
@@ -87,9 +88,9 @@ jobs:
                 "PathOnClient": "scanner-report.csv",
                 "VersionData": "'"$(cat encoded_report.txt)"'"
               }')
-            echo "contentDocument Response: $contentDocumentResponse"
+            echo "Response: $contentDocumentResponse"
             
-            contentVersionId=$(echo $contentDocumentResponse | jq '.[] | .id')
+            contentVersionId=$(echo $contentDocumentResponse | jq -r '.id // empty')
             if [ -z "$contentVersionId" ]; then
               echo "Error: Failed to upload file. No ContentVersionId found."
               exit 1
