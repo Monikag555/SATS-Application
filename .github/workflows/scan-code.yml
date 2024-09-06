@@ -34,7 +34,7 @@ jobs:
         id: get-changes
         run: |
           git fetch --unshallow || true
-          
+
           # Check if there is more than one commit
           if [ "$(git rev-list --count HEAD)" -gt "1" ]; then
             echo "Fetching changed files between HEAD~1 and HEAD"
@@ -51,9 +51,8 @@ jobs:
           if [ -n "$files" ]; then
             sf scanner:run --target "$files" --format "csv" --outfile "scanner-report.csv" || { echo "Scanner run failed"; exit 1; }
           else
-            echo "No relevant files changed."
-            # Full scan if no specific files are identified for delta
-            sf scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv"
+            echo "No relevant files changed. Skipping the scan."
+            exit 0
           fi
         env:
           SF_LAZY_LOAD_MODULES: 'true'
