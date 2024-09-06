@@ -1,5 +1,6 @@
 name: SFDX Code Scan
 
+#sfdx
 on:
   push:
     branches:
