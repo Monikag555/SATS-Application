@@ -1,3 +1,5 @@
+name: Scan Code
+
 on:
   push:
     branches:
