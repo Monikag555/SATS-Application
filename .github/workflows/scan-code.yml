@@ -1,5 +1,3 @@
-name: SFDX Code Scan
-
 on:
   push:
     branches:
@@ -34,17 +32,11 @@ jobs:
         id: get-changes
         run: |
           git fetch --unshallow || true
-          
-          # Check if there is more than one commit
-          if [ "$(git rev-list --count HEAD)" -gt "1" ]; then
-            echo "Fetching changed files between HEAD~1 and HEAD"
-            git diff --name-only HEAD~1 HEAD > changed_files.txt
-          else
-            echo "No previous commit to compare to." > changed_files.txt
-          fi
+          git diff --name-only origin/main...HEAD > changed_files.txt
           cat changed_files.txt
 
-      - name: Run SFDX Scanner
+      - name: Run SFDX Scanner on Changed Files
+        if: success()
         run: |
           files=$(cat changed_files.txt | grep -E '\.cls$|\.lwc$' || true)
           echo "Files to scan: $files"
@@ -52,15 +44,19 @@ jobs:
             sf scanner:run --target "$files" --format "csv" --outfile "scanner-report.csv" || { echo "Scanner run failed"; exit 1; }
           else
             echo "No relevant files changed."
-            # Full scan if no specific files are identified for delta
-            sf scanner:run --target "force-app/main/default/classes/**/*.cls,force-app/main/default/lwc" --format "csv" --outfile "scanner-report.csv"
+            touch scanner-report.csv
           fi
         env:
           SF_LAZY_LOAD_MODULES: 'true'
           SF_AUTOUPDATE_DISABLE: 'true'
           SF_DISABLE_AUTOUPDATE: 'true'
 
+      - name: Print Scanner Report
+        if: success()
+        run: cat scanner-report.csv
+
       - name: Encode CSV file to Base64
+        if: success()
         id: encode_file
         run: |
           if [ -f scanner-report.csv ]; then
@@ -71,9 +67,11 @@ jobs:
           fi
 
       - name: Install jq
+        if: success()
         run: sudo apt-get install -y jq
 
       - name: Upload CSV Report to Salesforce
+        if: success()
         run: |
           if [ -s encoded_report.txt ]; then
             contentDocumentResponse=$(curl -X POST https://sprintparksolutionspvtltd-dev-ed.develop.my.salesforce.com/services/data/v61.0/sobjects/ContentVersion/ \
