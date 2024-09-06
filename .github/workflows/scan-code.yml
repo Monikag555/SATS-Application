@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - feature_2
+      - "**"
 
 jobs:
   installcli:
